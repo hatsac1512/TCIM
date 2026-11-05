@@ -1,0 +1,170 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   Liquid Glass theme — preview build index_glass.html (python build.py glass).
+   Style reference: Apple's "Liquid Glass" demo video (Chan Karunamuni on X):
+   silver backdrop with clear glass droplets, frosted glass panels with bright
+   rims, pill-shaped controls, a glass "lens" for the selected item, black
+   content, green / blue accents. Style only — no assets are copied.
+   Loaded after common.css and the page styles, so it only overrides them.
+   ═══════════════════════════════════════════════════════════════════════ */
+:root{
+  --bg:#D9DCE1; --sf:#FFFFFF; --sf2:rgba(255,255,255,.42); --bd:rgba(60,60,67,.13); --bd2:rgba(60,60,67,.22); --fld:rgba(255,255,255,.72);
+  --tx:#1D1D1F; --hl:#000000; --mu:#55585E; --mu2:#8A8D93;
+  --pri:#0071E3; --pri2:#0060C2; --pri-soft:rgba(0,113,227,.12);
+  --gn:#1F8F45; --gn-soft:rgba(52,199,89,.18); --rd:#D93025; --rd-soft:rgba(255,59,48,.13); --or:#B35F00; --or-soft:rgba(255,159,10,.18);
+  --pu:#7E3FB0; --pu-soft:rgba(175,82,222,.14); --yl:#946500; --yl-soft:rgba(255,204,0,.22); --cy:#0A7FA3; --cy-soft:rgba(50,173,230,.16);
+  --tA:#34C759; --tB:#0A84FF; --tC:#FF9F0A; --tN:rgba(60,60,67,.16); --tNo:#FF5F57;
+  --bar-gloss:1;   /* dashboard charts: glossy glass pills (bars) and a glass sheen (pies), as in the reference image */
+  --r:24px; --sh:0 10px 30px rgba(30,35,45,.10),0 1px 2px rgba(30,35,45,.06); --sh-lg:0 30px 70px rgba(30,35,45,.24);
+  --g-fill:linear-gradient(180deg,rgba(255,255,255,.62),rgba(255,255,255,.34));
+  --g-soft:rgba(255,255,255,.36);
+  --g-rim:rgba(255,255,255,.78);
+  --g-in:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(255,255,255,.35);
+  --g-blur:blur(22px) saturate(170%);
+  --lens:linear-gradient(180deg,rgba(255,255,255,.96),rgba(255,255,255,.62));
+  --lens-sh:inset 0 1px 0 #fff,inset 0 -1px 0 rgba(0,0,0,.05),0 4px 14px rgba(30,35,45,.16);
+  --th:rgba(244,245,247,.94);
+  /* selected controls: deep WHO blue glass (white text ≥ 4.9:1; WHO blue #009ADE itself is 3.2:1 with white) */
+  --sel:linear-gradient(180deg,#0B74BE,#0A5A9E);
+  --sel-sh:inset 0 1px 0 rgba(255,255,255,.35),0 1px 2px rgba(0,0,0,.18),0 6px 16px rgba(10,90,158,.38);
+  /* selected dashboard tab / indicator button: graphite grey, same as the KPI cards (white text 5.7:1) */
+  --flt:linear-gradient(180deg,#62676F,#3E4248);
+  --flt-sh:inset 0 1px 0 rgba(255,255,255,.3),0 1px 2px rgba(0,0,0,.18),0 6px 16px rgba(30,35,45,.30);
+}
+:root[data-theme="dark"]{
+  --bg:#071C3D; --sf:#0E2A55; --sf2:rgba(255,255,255,.07); --bd:rgba(255,255,255,.10); --bd2:rgba(255,255,255,.18); --fld:rgba(255,255,255,.08);
+  --tx:#E4ECF8; --hl:#FFFFFF; --mu:#A9B8D0; --mu2:#6F81A0;
+  --pri:#4C9AFF; --pri2:#3B88F0; --pri-soft:rgba(76,154,255,.18);
+  --gn:#4ADE80; --gn-soft:rgba(52,199,89,.18); --rd:#FF6B61; --rd-soft:rgba(255,69,58,.16); --or:#FFB340; --or-soft:rgba(255,159,10,.16);
+  --pu:#C99BFF; --pu-soft:rgba(191,90,242,.16); --yl:#FFD60A; --yl-soft:rgba(255,214,10,.14); --cy:#64D2FF; --cy-soft:rgba(100,210,255,.14);
+  --tA:#30D158; --tB:#0A84FF; --tC:#FF9F0A; --tN:rgba(255,255,255,.14); --tNo:#FF6B61;
+  --sh:0 10px 30px rgba(0,0,0,.30); --sh-lg:0 30px 70px rgba(0,0,0,.55);
+  --g-fill:linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,.05));
+  --g-soft:rgba(255,255,255,.06);
+  --g-rim:rgba(255,255,255,.22);
+  --g-in:inset 0 1px 0 rgba(255,255,255,.30),inset 0 -1px 0 rgba(255,255,255,.06);
+  --lens:linear-gradient(180deg,rgba(255,255,255,.26),rgba(255,255,255,.11));
+  --lens-sh:inset 0 1px 0 rgba(255,255,255,.4),0 4px 14px rgba(0,0,0,.35);
+  --th:rgba(12,36,74,.94);
+  --sel-sh:inset 0 1px 0 rgba(255,255,255,.3),0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.5);
+  --flt:var(--sel); --flt-sh:var(--sel-sh);   /* dark: KPI cards stay navy glass, so tabs stay WHO blue */
+}
+.main{position:relative;z-index:1}           /* above the droplet canvas */
+.page-h h1{font-weight:600;letter-spacing:-.7px}
+
+/* ── Frosted glass surfaces ── */
+.kpi,.cc,.ctl,.seg-nav,.tgl,.btn-out,.mdl,.bnr,.actbar,.demo-rib,.note-band,.live,.code{
+  background:var(--g-fill);border:1px solid var(--g-rim);box-shadow:var(--g-in),var(--sh);
+  -webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur)}
+.live,.code,.tgl,.btn-out{box-shadow:var(--g-in),0 2px 8px rgba(30,35,45,.08)}
+/* glass inside glass: lighter, no extra blur */
+.dec,.indc,.chk,.isel,.tbox,.prof .ind,.tw{background:var(--g-soft);border:1px solid var(--g-rim);box-shadow:var(--g-in);-webkit-backdrop-filter:none;backdrop-filter:none}
+/* bright specular rim (top-left and bottom-right), as on the glass in the reference video */
+.kpi::after,.cc::after,.mdl::after{content:'';position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
+  background:linear-gradient(140deg,rgba(255,255,255,1),rgba(255,255,255,.16) 28%,rgba(255,255,255,0) 55%,rgba(255,255,255,.6));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+:root[data-theme="dark"] .kpi::after,:root[data-theme="dark"] .cc::after,:root[data-theme="dark"] .mdl::after{
+  background:linear-gradient(140deg,rgba(255,255,255,.45),rgba(255,255,255,.06) 28%,rgba(255,255,255,0) 55%,rgba(255,255,255,.22))}
+
+/* ── Shapes: generous radii, pills ── */
+.kpi,.cc{border-radius:var(--r)}
+.mdl{border-radius:30px}
+.ctl,.btn,.btn-sm,.tgl,.seg-nav,.vb,.live,.isel,.isel button,.seg,.seg label{border-radius:999px}
+.ctl .it{border-left-color:var(--bd)}
+.ctl .it:first-child{padding-left:16px}
+.tw{border-radius:18px}
+.demo-rib,.note-band,.bnr,.chk,.dec,.tbox{border-radius:18px}
+.indc{border-radius:20px}
+.code{border-radius:999px;padding:0 12px}
+.type{border-radius:999px}
+.cell{border-radius:999px}
+
+/* ── Black content: titles, values and icons ── */
+.kpi .t .ic,.kpi.gn .t .ic,.kpi.or .t .ic,.kpi.pu .t .ic,.kpi.cy .t .ic,.kpi.rd .t .ic{color:var(--hl)}
+
+/* ── KPI cards (Regional Dashboard, Review & Validation), light mode: graphite grey glass, white text
+   (#62676F → #3E4248: white 5.7:1 or more; stands out on the silver backdrop, lighter than the black buttons) ── */
+:root[data-theme="light"] .kpi{background:radial-gradient(220px circle at var(--mx,-999px) var(--my,-999px),rgba(255,255,255,.17),rgba(255,255,255,0) 70%),   /* light following the pointer (glass_liquid.js) */
+  linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,0) 45%),linear-gradient(160deg,#62676F,#3E4248);
+  border-color:rgba(255,255,255,.5);box-shadow:inset 0 1px 0 rgba(255,255,255,.38),inset 0 -1px 0 rgba(0,0,0,.14),0 10px 26px rgba(30,35,45,.26)}
+:root[data-theme="light"] .kpi .t,:root[data-theme="light"] .kpi .v,:root[data-theme="light"] .kpi .t .ic{color:#fff}
+:root[data-theme="light"] .kpi .v small,:root[data-theme="light"] .kpi .d,:root[data-theme="light"] .kpi .muted{color:rgba(255,255,255,.9)}
+:root[data-theme="light"] .kpi .dl.up{background:#fff;color:#17803D}
+:root[data-theme="light"] .kpi .dl.dn{background:#fff;color:#C4271E}
+:root[data-theme="light"] .kpi .dl.eq{background:rgba(255,255,255,.16);color:#fff;border-color:rgba(255,255,255,.45)}
+:root[data-theme="dark"] .kpi{background:radial-gradient(220px circle at var(--mx,-999px) var(--my,-999px),rgba(255,255,255,.10),rgba(255,255,255,0) 70%),var(--g-fill)}
+:root[data-theme="light"][data-motion="on"] .kpi:hover{box-shadow:inset 0 1px 0 rgba(255,255,255,.38),0 14px 30px rgba(30,35,45,.34)}
+.cc h3 .i{border-radius:50%;background:var(--lens);border:1px solid var(--g-rim);box-shadow:var(--lens-sh);color:var(--hl)}
+.q .ql .n,.indc h4 .n{color:var(--hl)}
+.demo-rib b{color:var(--or)}
+
+/* ── Buttons: primary = black glass pill; others clear glass ── */
+.btn{background:linear-gradient(180deg,#2C2C30,#0A0A0C);color:#fff;border-color:transparent;box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 6px 16px rgba(0,0,0,.18)}
+.btn:hover{background:linear-gradient(180deg,#3A3A3F,#141417)}
+.btn.btn-out{background:var(--g-fill);color:var(--hl);border:1px solid var(--g-rim);box-shadow:var(--g-in),0 2px 8px rgba(30,35,45,.08)}
+.btn.btn-out:hover{background:var(--lens)}
+.btn-gn{background:linear-gradient(180deg,#3DD368,#25A244)}.btn-gn:hover{background:linear-gradient(180deg,#45DB70,#209A3F)}
+.btn-rd{background:linear-gradient(180deg,#FF5A4F,#E0352B)}.btn-rd:hover{background:linear-gradient(180deg,#FF6A60,#D02E25)}
+:root[data-theme="dark"] .btn:not(.btn-out):not(.btn-gn):not(.btn-rd){background:linear-gradient(180deg,#FFFFFF,#DCE3EE);color:#000;box-shadow:inset 0 1px 0 #fff,0 6px 16px rgba(0,0,0,.35)}
+
+/* ── Selected item = solid glass pill with white text and a deeper shadow, so the choice is obvious ── */
+.seg-nav{padding:5px}
+.vb{color:var(--tx)}
+.vb.on,.isel button.on{background:var(--flt);color:#fff;box-shadow:var(--flt-sh)}
+.seg label:has(input:checked){background:var(--sel);color:#fff;box-shadow:var(--sel-sh)}
+.isel{padding:4px}
+.isel button{color:var(--tx)}
+.seg{background:var(--g-soft);border:1px solid var(--g-rim);box-shadow:var(--g-in)}
+.seg label{color:var(--tx)}
+/* answers keep their meaning: Fully / Available = green, Partially / Partly = blue, No / Not available = red */
+.seg label.o-full:has(input:checked),.seg label.o-available:has(input:checked),.seg label.o-yes:has(input:checked){background:linear-gradient(180deg,#1A7F3C,#13662F);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 1px 2px rgba(0,0,0,.18),0 6px 16px rgba(19,102,47,.35)}
+.seg label.o-partial:has(input:checked),.seg label.o-partly:has(input:checked){background:var(--sel);color:#fff;box-shadow:var(--sel-sh)}
+.seg label.o-no:has(input:checked),.seg label.o-not_available:has(input:checked),.seg label.o-nr:has(input:checked){background:linear-gradient(180deg,#C4271E,#A11F18);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 1px 2px rgba(0,0,0,.18),0 6px 16px rgba(161,31,24,.35)}
+
+/* ── Toggle = iOS-style switch (green when on) ── */
+.tgl input{-webkit-appearance:none;appearance:none;position:relative;flex:0 0 auto;width:40px;height:24px;margin:0;border-radius:999px;background:rgba(120,120,128,.28);cursor:pointer;transition:background .2s}
+.tgl input::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:linear-gradient(180deg,#fff,#F0F0F3);box-shadow:0 2px 6px rgba(0,0,0,.2);transition:transform .28s cubic-bezier(.3,.7,.3,1.35)}
+.tgl input:checked{background:#34C759}
+.tgl input:checked::after{transform:translateX(16px)}
+/* liquid knob (video 0:19–0:24): pressed, it swells into a clear glass lens the green track shows through, then springs across */
+.tgl input::after{transition:transform .5s cubic-bezier(.3,1.5,.5,1),width .22s ease,background .2s ease,box-shadow .2s ease;
+  transition:transform .55s linear(0, 0.0281, 0.1007, 0.202, 0.319, 0.4412, 0.5607, 0.6718, 0.7709, 0.8558, 0.9258, 0.9811, 1.0226, 1.0519, 1.0706, 1.0805, 1.0835, 1.0813, 1.0752, 1.0668, 1.0571, 1.0468, 1.0369, 1.0276, 1.0193, 1.0122, 1.0063, 1.0016, 0.9982, 0.9957, 0.9941, 0.9933, 0.993, 0.9932, 0.9937, 0.9944, 0.9952, 0.9961, 0.9969, 0.9977, 1),width .22s ease,background .2s ease,box-shadow .2s ease}
+.tgl input:active::after{width:30px;border-radius:999px;transform:scale(1.22);background:rgba(255,255,255,.28);
+  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.95),inset 0 2px 3px rgba(255,255,255,.75),inset 2px 0 2px -1px rgba(70,150,255,.55),inset -2px 0 2px -1px rgba(255,160,70,.5),0 4px 12px rgba(0,0,0,.22)}
+.tgl input:checked:active::after{transform:translateX(6px) scale(1.22)}
+
+/* ── Motion: blocks materialise like droplets — from blurred and small to sharp, with an elastic settle (video 0:02, 0:05) ── */
+@keyframes liq-in{from{opacity:0;transform:translateY(12px) scale(.94);filter:blur(10px)}to{opacity:1;transform:none;filter:blur(0)}}
+:root[data-motion="on"] .mo-i{animation:liq-in .9s cubic-bezier(.2,.9,.3,1.12) both;animation-delay:calc(var(--i,0) * 60ms);
+  animation-timing-function:linear(0, 0.0281, 0.1007, 0.202, 0.319, 0.4412, 0.5607, 0.6718, 0.7709, 0.8558, 0.9258, 0.9811, 1.0226, 1.0519, 1.0706, 1.0805, 1.0835, 1.0813, 1.0752, 1.0668, 1.0571, 1.0468, 1.0369, 1.0276, 1.0193, 1.0122, 1.0063, 1.0016, 0.9982, 0.9957, 0.9941, 0.9933, 0.993, 0.9932, 0.9937, 0.9944, 0.9952, 0.9961, 0.9969, 0.9977, 1)}
+/* toast: a droplet that stretches into the message pill */
+@keyframes liq-toast{from{clip-path:inset(0 calc(50% - 20px) round 999px);transform:translateX(-50%) translateY(-14px) scale(.85);filter:blur(5px)}to{clip-path:inset(0 0 round 999px);transform:translateX(-50%);filter:blur(0)}}
+:root[data-motion="on"] .toast.show{animation:liq-toast .8s cubic-bezier(.3,1.4,.5,1) both}
+
+/* ── Fields ── */
+select,input[type=text],input[type=number],textarea{border-radius:12px}
+.ctl select{background:transparent;max-width:200px}   /* the wider glass sidebar leaves less room: keep the filter row on one line */
+.kpis{gap:12px}.kpi{padding:16px 15px 14px}               /* …and KPI titles on two lines */
+
+/* ── Tables on glass ── */
+th{background:var(--th);color:var(--mu)}
+tbody tr:hover td,tr:hover td{background:var(--g-soft)}
+tr.sel td{background:var(--pri-soft)!important}
+
+/* ── Notes ── */
+.demo-rib{background:linear-gradient(180deg,rgba(255,238,210,.72),rgba(255,238,210,.42))}
+.note-band{background:linear-gradient(180deg,rgba(225,238,255,.72),rgba(225,238,255,.42))}
+:root[data-theme="dark"] .demo-rib{background:linear-gradient(180deg,rgba(255,159,10,.16),rgba(255,159,10,.07))}
+:root[data-theme="dark"] .note-band{background:linear-gradient(180deg,rgba(76,154,255,.16),rgba(76,154,255,.07))}
+
+/* ── Floating glass action bar (Country Submission) ── */
+.actbar{left:16px;right:16px;bottom:14px;border-radius:26px;padding:10px 14px;border:1px solid var(--g-rim)}
+
+/* ── Modal, toast ── */
+.ovly{background:rgba(200,205,212,.38);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+:root[data-theme="dark"] .ovly{background:rgba(2,10,25,.5)}
+.mdl .x{border-radius:50%;background:var(--lens);border:1px solid var(--g-rim);box-shadow:var(--lens-sh);color:var(--hl)}
+.toast{border-radius:999px;background:rgba(20,20,22,.86);color:#fff;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+:root[data-theme="dark"] .toast{background:rgba(255,255,255,.92);color:#000}
+.toast.bad{background:var(--rd);color:#fff}
+
+@media(max-width:760px){.ctl{border-radius:22px}.actbar{left:8px;right:8px;bottom:8px;border-radius:20px}}

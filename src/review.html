@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TM1 MDS · Review &amp; Validation</title>
+<script>(function(){var d=document.documentElement;try{var t=localStorage.getItem('tm1_theme');d.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){d.setAttribute('data-theme','light');}var m=null;try{m=localStorage.getItem('tm1_motion');}catch(e){}if(m!=='on'&&m!=='off')m=(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)?'off':'on';d.setAttribute('data-motion',m);if(window.parent!==window)d.classList.add('emb');})();</script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/*__COMMON_CSS__*/
+.kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.kpi{cursor:pointer}
+.kpi:hover{border-color:var(--bd2)}
+tr.sel td{background:var(--pri-soft)!important}
+.dec{display:grid;grid-template-columns:240px 1fr;gap:14px 18px;align-items:start;margin-top:18px;padding:16px 18px;border-radius:14px;border:1px solid var(--bd);background:var(--sf2)}
+.dec .acts{grid-column:1 / -1;display:flex;gap:8px;flex-wrap:wrap}
+.lbl{font-size:.74rem;font-weight:500;color:var(--mu)}
+.chk{display:flex;gap:10px;align-items:flex-start;margin-top:12px;padding:12px 14px;border-radius:12px;font-size:.82rem;background:var(--sf);border:1px solid var(--bd)}
+.chk .ic{margin-top:1px;width:18px;height:18px}
+.chk.ok{background:var(--gn-soft);border-color:transparent}.chk.ok .ic{color:var(--gn)}
+.chk.bad{background:var(--rd-soft);border-color:transparent}.chk.bad .ic{color:var(--rd)}
+.chk ul{margin:4px 0 0 18px}
+.bnr{padding:12px 14px;border-radius:12px;margin-bottom:14px;font-size:.84rem;border:1px solid var(--bd);background:var(--sf)}
+@media(max-width:760px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.dec{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="main">
+  <div class="page-h">
+    <div><h1>Review &amp; Validation<span class="live" id="liveChip"><span class="dot"></span><span id="liveTxt">—</span></span></h1>
+      <p>Check each submitted report, confirm the readiness type with the Member State, then <b>Validate</b> it (it appears on the Regional Dashboard) or <b>Return</b> it with comments. Validated submissions are locked; only the admin can unlock them. Every action is written to the audit log.</p></div>
+    <div class="acts" id="hdrActs">
+      <div class="ctl">
+        <div class="it"><label for="rSt">Status</label><select id="rSt" onchange="rList()"><option value="">All</option></select></div>
+        <div class="it"><label for="rMS">Member State</label><select id="rMS" onchange="rList()"></select></div>
+        <div class="it"><label for="rYear">Year</label><select id="rYear" onchange="rList()"><option value="">All</option></select></div>
+      </div>
+      <button class="btn btn-out" onclick="load()"><span data-ic="refresh"></span>Sync</button>
+      <button class="btn" onclick="openPF()" title="Create a draft from public sources for a Member State to confirm"><span data-ic="plus"></span>Pre-fill a draft</button>
+    </div>
+  </div>
+  <div id="demoRib" class="demo-rib" hidden><span data-ic="alert"></span><span><b>MOCK-UP — illustrative data only.</b> Try it: sign in as a focal point, submit, then come back here as the WHO reviewer.</span></div>
+  <div id="noAccess" class="bnr" hidden>Only WHO reviewers and the admin can use this tab.</div>
+
+  <div class="kpis" id="kp">
+    <div class="kpi or" onclick="quick('submitted')"><div class="t"><span>Awaiting WHO review</span><span data-ic="clock"></span></div><div class="v" id="q1">0</div><div class="d">Submitted by focal points</div></div>
+    <div class="kpi rd" onclick="quick('returned')"><div class="t"><span>Returned to countries</span><span data-ic="undo"></span></div><div class="v" id="q2">0</div><div class="d">Waiting for corrections</div></div>
+    <div class="kpi gn" onclick="quick('validated')"><div class="t"><span>Validated</span><span data-ic="check"></span></div><div class="v" id="q3">0</div><div class="d">Shown on the Regional Dashboard</div></div>
+    <div class="kpi pu" onclick="quick('open')"><div class="t"><span>Drafts &amp; WHO pre-fills</span><span data-ic="edit"></span></div><div class="v" id="q4">0</div><div class="d">Not yet submitted</div></div>
+  </div>
+
+  <div class="cr s1"><div class="cc"><h3><span class="i" data-ic="inbox"></span>Submissions<span class="sub" id="cnt"></span></h3>
+    <div class="tw" style="max-height:420px"><table id="t_list"></table></div></div></div>
+
+  <div class="cr s1" id="revWrap" hidden><div class="cc" id="rev"></div></div>
+
+  <div class="cr s1"><div class="cc"><h3><span class="i" data-ic="history"></span>Audit log<span class="sub">latest 200 actions · who changed what, and when</span></h3>
+    <div class="tw" style="max-height:360px"><table id="t_audit"></table></div></div></div>
+</div>
+
+<div class="ovly" id="pfOv" onclick="if(event.target===this)closePF()"><div class="mdl" style="max-width:460px">
+  <button class="x" onclick="closePF()" aria-label="Close">×</button>
+  <h3 style="color:var(--hl);margin-bottom:6px;font-weight:600;font-size:1.1rem">Pre-fill a draft from public sources</h3>
+  <p class="muted" style="font-size:.8rem;margin-bottom:14px">WHO can start a submission (for example criteria 1–3 from WHO global surveys). It is shown only to WHO and that country until the focal point checks, corrects and submits it.</p>
+  <div style="display:grid;gap:10px">
+    <label class="lbl">Member State<select id="pfMS" style="width:100%;margin-top:4px"></select></label>
+    <label class="lbl">Reporting year<select id="pfYear" style="width:100%;margin-top:4px"></select></label>
+  </div>
+  <div id="pfMsg" class="muted" style="font-size:.78rem;margin-top:10px"></div>
+  <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px"><button class="btn btn-out" onclick="closePF()">Cancel</button><button class="btn" onclick="goPF()">Open in Country Submission</button></div>
+</div></div>
+
+<script>/*__COMMON_JS__*/</script>
+<script>
+const { $, esc, sess, can, CNAME, COUNTRIES, STATUS, TYPES, YEARS } = TM1;
+let WS = [], SEL = null, quickSet = null;
+const ORDER = { submitted: 0, returned: 1, prefilled: 2, draft: 3, validated: 4 };
+
+async function load() {
+  TM1.setLive('syn');
+  try { WS = await TM1.api.workspace(); TM1.setLive('ok'); }
+  catch (e) { TM1.setLive('err', e.message); TM1.toast(e.message, true); }
+  const ys = [...new Set(WS.map(s => s.year))].sort((a, b) => b - a), cur = $('rYear').value;
+  $('rYear').innerHTML = '<option value="">All</option>' + ys.map(y => '<option>' + y + '</option>').join(''); $('rYear').value = cur;
+  rList(); rAudit();
+  if (SEL) { const s = WS.find(x => x.id === SEL.id); if (s) openRev(s.id, true); else closeRev(); }
+  TM1.entered();
+}
+/* KPI counters count from the last value shown (from 0 when the tab is shown again). */
+function setQ(id, n) { const e = $(id); TM1.tween(e, n, e.dataset.v == null ? 0 : +e.dataset.v); e.dataset.v = n; }
+window.addEventListener('tm1-enter', () => ['q1', 'q2', 'q3', 'q4'].forEach(id => delete $(id).dataset.v));
+function quick(k) { quickSet = k === 'open' ? ['draft', 'prefilled'] : null; $('rSt').value = k === 'open' ? '' : k; rList(); }
+function rList() {
+  const st = $('rSt').value, ms = $('rMS').value, y = $('rYear').value;
+  if (st) quickSet = null;
+  const c = k => WS.filter(s => s.status === k).length;
+  setQ('q1', c('submitted')); try { window.parent.postMessage({ type: 'tm1-badge', view: 'review', n: c('submitted') }, '*'); } catch (e) {} setQ('q2', c('returned')); setQ('q3', c('validated')); setQ('q4', c('draft') + c('prefilled'));
+  const L = WS.filter(s => (!st || s.status === st) && (!quickSet || quickSet.includes(s.status)) && (!ms || s.iso3 === ms) && (!y || String(s.year) === y))
+    .sort((a, b) => (ORDER[a.status] - ORDER[b.status]) || (CNAME[a.iso3] || '').localeCompare(CNAME[b.iso3] || '') || b.year - a.year);
+  $('cnt').textContent = L.length + ' shown';
+  $('t_list').innerHTML = '<tr><th>Submission</th><th>Member State</th><th>Year</th><th>Status</th><th>Proposed</th><th>Confirmed</th><th>Updated</th><th>By</th><th></th></tr>' +
+    (L.length ? L.map(s => '<tr class="' + (SEL && SEL.id === s.id ? 'sel' : '') + '"><td><code>' + esc(s.code) + '</code></td><td class="ms" style="white-space:normal;min-width:120px">' + esc(CNAME[s.iso3] || s.iso3) + '</td><td>' + s.year + '</td><td>' + TM1.stBadge(s.status) + '</td><td>' + TM1.typeBadge(s.proposedType) + '</td><td>' + (s.confirmedType ? TM1.typeBadge(s.confirmedType) : '<span class="muted">—</span>') + '</td><td style="white-space:nowrap">' + TM1.fmtDT(s.updatedAt) + '</td><td class="by" title="' + esc(s.updatedBy || '') + '">' + esc(s.updatedBy || '') + '</td>' +
+      '<td><button class="btn btn-sm ' + (s.status === 'submitted' ? '' : 'btn-out') + '" onclick="openRev(' + s.id + ')">' + (s.status === 'submitted' ? 'Review' : 'Open') + '</button></td></tr>').join('')
+      : '<tr><td colspan="9" class="nodata">No submissions match the filters.</td></tr>');
+}
+
+function openRev(id, noScroll) {
+  const s = WS.find(x => x.id === id); if (!s) return; SEL = s;
+  const miss = TM1.missingForSubmit(s), prop = s.proposedType || TM1.readinessType(s.readiness);
+  let h = TM1.profileHTML(s);
+  h += miss.length ? '<div class="chk bad">' + TM1.icon('alert') + '<span><b>Completeness check:</b> ' + miss.length + ' required field(s) missing<ul>' + miss.slice(0, 6).map(m => '<li>' + esc(m.t) + '</li>').join('') + (miss.length > 6 ? '<li>…</li>' : '') + '</ul></span></div>'
+    : '<div class="chk ok">' + TM1.icon('check') + '<span><b>Completeness check:</b> all required fields are filled, and every reported indicator has source, coverage and coding method.</span></div>';
+  h += '<div class="chk">' + TM1.icon('info') + '<span><b>Points to check:</b> evidence notes support each readiness answer · data sources are plausible for the readiness type · coverage and coding method are stated correctly · no names or personal details in notes.</span></div>';
+  if (can.decide(s.status)) {
+    h += '<div class="dec"><div><div class="lbl">Confirmed readiness type</div><select id="dType" style="width:100%;margin-top:4px">' + ['A', 'B', 'C'].map(t => '<option value="' + t + '"' + (t === prop ? ' selected' : '') + '>' + t + ' · ' + TYPES[t] + (t === prop ? ' (proposed)' : '') + '</option>').join('') + '</select>' +
+      '<div class="muted" style="font-size:.72rem;margin-top:6px">Proposed by the system: <b>' + (prop || '—') + '</b>. Change it only after agreeing with the Member State.</div></div>' +
+      '<div><div class="lbl">Comments for the focal point <span class="muted">(required when returning)</span></div><textarea id="dCmt" placeholder="What should be corrected or confirmed? No personal details."></textarea></div>' +
+      '<div class="acts"><button class="btn btn-gn" onclick="decide(\'validate\')"' + (miss.length ? ' disabled title="Incomplete submissions cannot be validated"' : '') + '>' + TM1.icon('check') + 'Validate</button><button class="btn btn-rd" onclick="decide(\'return\')">' + TM1.icon('undo') + 'Return for revision</button>' +
+      '<button class="btn btn-out" onclick="TM1.printProfile(SEL)">' + TM1.icon('print') + 'Print Country Profile</button>' + (sess.role === 'admin' ? '<button class="btn btn-out" onclick="editIt()">' + TM1.icon('edit') + 'Correct in Country Submission (admin)</button>' : '') + '<button class="btn btn-out" onclick="closeRev()">Close</button></div></div>';
+  } else {
+    h += '<div class="dec" style="grid-template-columns:1fr"><div class="muted" style="font-size:.8rem">' + ({ validated: 'Validated and locked.', returned: 'Returned — waiting for the focal point to correct and resubmit.', draft: 'Draft — the country has not submitted yet.', prefilled: 'Pre-filled by WHO — waiting for the focal point to confirm.' }[s.status] || '') + '</div>' +
+      '<div class="acts">' + (can.unlock(s.status) ? '<button class="btn" onclick="decide(\'unlock\')">' + TM1.icon('unlock') + 'Unlock (admin)</button>' : '') +
+      (can.edit(s.iso3, s.status) ? '<button class="btn btn-out" onclick="editIt()">' + TM1.icon('edit') + 'Edit in Country Submission</button>' : '') +
+      '<button class="btn btn-out" onclick="TM1.printProfile(SEL)">' + TM1.icon('print') + 'Print Country Profile</button><button class="btn btn-out" onclick="closeRev()">Close</button></div></div>';
+  }
+  $('rev').innerHTML = h; $('revWrap').hidden = false; rList();
+  if (!noScroll) $('revWrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function closeRev() { SEL = null; $('revWrap').hidden = true; rList(); }
+function editIt() { if (SEL) TM1.goTab('entry', { iso3: SEL.iso3, year: SEL.year }); }
+async function decide(action) {
+  const s = SEL; if (!s) return;
+  const comment = (($('dCmt') || {}).value || '').trim();
+  if (action === 'return' && !comment) { TM1.toast('Write a comment for the focal point before returning.', true); $('dCmt').focus(); return; }
+  const msg = { validate: 'Validate ' + s.code + '? It will appear on the Regional Dashboard for all users and be locked.', return: 'Return ' + s.code + ' to the focal point with your comments?', unlock: 'Unlock ' + s.code + '? It will be removed from the Regional Dashboard until it is validated again.' }[action];
+  if (!confirm(msg)) return;
+  try {
+    const r = await TM1.api.setStatus(s.id, action, { comment, confirmedType: ($('dType') || {}).value });
+    TM1.toast('✓ ' + r.code + ': ' + STATUS[r.status]);
+    SEL = r; await load();
+  } catch (e) { TM1.toast(e.message, true); }
+}
+async function rAudit() {
+  try {
+    const a = await TM1.api.audit();
+    $('t_audit').innerHTML = '<tr><th>When</th><th>Who</th><th>Submission</th><th>Action</th><th>Detail</th></tr>' + (a.length ? a.map(x => '<tr><td style="white-space:nowrap">' + TM1.fmtDT(x.at) + '</td><td>' + esc(x.by) + '</td><td><code>' + esc(x.code) + '</code></td><td><b>' + esc(x.action) + '</b></td><td>' + esc(x.detail) + '</td></tr>').join('') : '<tr><td colspan="5" class="nodata">No actions recorded yet.</td></tr>');
+  } catch (e) { $('t_audit').innerHTML = '<tr><td class="nodata">' + esc(e.message) + '</td></tr>'; }
+}
+function openPF() { $('pfMsg').textContent = ''; $('pfOv').classList.add('sh'); pfCheck(); }
+function closePF() { $('pfOv').classList.remove('sh'); }
+function pfCheck() { const s = WS.find(x => x.iso3 === $('pfMS').value && String(x.year) === $('pfYear').value); $('pfMsg').innerHTML = s ? 'A submission already exists (' + TM1.stBadge(s.status) + '). ' + (can.edit(s.iso3, s.status) ? 'You can edit it.' : 'It can no longer be pre-filled by WHO.') : 'No submission yet — a new WHO pre-fill will be created when you save.'; }
+function goPF() { closePF(); TM1.goTab('entry', { iso3: $('pfMS').value, year: +$('pfYear').value }); }
+
+/* ── Init ── */
+document.querySelectorAll('[data-ic]').forEach(e => { e.innerHTML = TM1.icon(e.dataset.ic); });
+$('demoRib').hidden = TM1.LIVE; TM1.sampleRibbon($('demoRib'));
+$('rSt').innerHTML = '<option value="">All</option>' + Object.entries(STATUS).map(([k, l]) => '<option value="' + k + '">' + l + '</option>').join('');
+const msOpts = COUNTRIES.map(([k, n]) => '<option value="' + k + '">' + esc(n) + '</option>').join('');
+$('rMS').innerHTML = '<option value="">All</option>' + msOpts; $('pfMS').innerHTML = msOpts;
+$('pfYear').innerHTML = YEARS.map(y => '<option>' + y + '</option>').join(''); $('pfYear').value = new Date().getFullYear();
+$('pfMS').onchange = pfCheck; $('pfYear').onchange = pfCheck;
+if (!TM1.isWHO()) { $('noAccess').hidden = false; document.querySelectorAll('.kpis,.cr,#hdrActs').forEach(e => e.hidden = true); }
+else { window.addEventListener('tm1-data', load); load(); }
+</script>
+</body>
+</html>

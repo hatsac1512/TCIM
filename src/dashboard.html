@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TM1 MDS · Regional Dashboard</title>
+<script>(function(){var d=document.documentElement;try{var t=localStorage.getItem('tm1_theme');d.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){d.setAttribute('data-theme','light');}var m=null;try{m=localStorage.getItem('tm1_motion');}catch(e){}if(m!=='on'&&m!=='off')m=(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)?'off':'on';d.setAttribute('data-motion',m);if(window.parent!==window)d.classList.add('emb');})();</script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+/*__COMMON_CSS__*/
+.mx td.c{padding:6px 4px}
+.mx th.v{height:132px;vertical-align:bottom;text-align:center;padding:10px 4px;font-size:.72rem;text-transform:none;letter-spacing:0}
+.mx th.v span{display:inline-block;writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap}   /* label centred over its column */
+.srt{display:inline-flex;align-items:center;gap:6px;border:0;background:none;padding:0;font:inherit;color:inherit;text-transform:inherit;letter-spacing:inherit;cursor:pointer}
+.srt:hover,.srt.on{color:var(--hl)}
+.srt:focus-visible{outline:2px solid var(--pri);outline-offset:3px;border-radius:4px}
+.srt .sa{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:5px;border:1px solid var(--bd2);font-size:.72rem;letter-spacing:0}
+.srt.on .sa{background:var(--pri);border-color:var(--pri);color:#fff}
+.srtc{display:inline-flex;align-items:center;gap:6px;font-size:.74rem;font-weight:500;color:var(--mu)}
+.srtc select{font-size:.76rem;padding:4px 8px}
+#t_ready th{white-space:normal;vertical-align:bottom}   /* long criterion headers wrap, so every column fits */
+.mx tr.dr td.ms::after{content:'DRAFT';margin-left:6px;font-size:.6rem;padding:1px 6px;border-radius:5px;background:var(--or-soft);color:var(--or);font-weight:600;letter-spacing:.4px}
+.clk{cursor:pointer}
+.lg{display:flex;gap:16px;flex-wrap:wrap;font-size:.76rem;color:var(--mu);margin-top:12px}
+.lg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.isel{display:inline-flex;gap:2px;padding:3px;border:1px solid var(--bd);border-radius:10px;margin-bottom:14px;flex-wrap:wrap;background:var(--sf2)}
+.isel button{font-size:.78rem;font-weight:500;border:0;background:transparent;color:var(--mu);border-radius:7px;padding:6px 12px;cursor:pointer}
+.isel button.on{background:var(--sf);color:var(--pri);box-shadow:0 1px 2px rgba(16,24,40,.08)}
+.chg{font-weight:600}.chg.up{color:var(--gn)}.chg.dn{color:var(--rd)}
+.tnote{font-size:.76rem;color:var(--mu);margin-top:14px;line-height:1.55}
+.gwrap{position:relative;height:220px;max-width:360px;margin:0 auto}
+.gval{position:absolute;left:0;right:0;top:118px;text-align:center}
+.gval b{display:block;font-size:2.2rem;font-weight:600;color:var(--hl);letter-spacing:-1px;line-height:1}
+.gval span{font-size:.76rem;color:var(--mu)}
+</style>
+</head>
+<body>
+<div class="main">
+  <div class="page-h">
+    <div><h1>Regional overview<span class="live" id="liveChip"><span class="dot"></span><span id="liveTxt">—</span></span></h1>
+      <p>Readiness to produce ICD-11 TM1 data, MDS items reportable now, and aggregate indicators with their metadata. Member States are listed alphabetically — gaps are visible, countries are never ranked.</p></div>
+    <div class="acts">
+      <div class="ctl">
+        <div class="it"><span class="muted" id="icCal"></span><label for="fYear">Reporting year</label><select id="fYear" onchange="render()"></select></div>
+        <div class="it"><label for="fType">Type</label><select id="fType" onchange="render()">
+          <option value="">All types</option><option value="A">A · Data-ready</option><option value="B">B · Partially ready</option><option value="C">C · Emerging</option><option value="none">No data</option></select></div>
+        <div class="it"><label for="fMS">Member State</label><select id="fMS" onchange="render()"></select></div>
+      </div>
+      <label class="tgl" id="draftWrap" hidden><input type="checkbox" id="fDrafts" onchange="load()">Include drafts</label>
+      <button class="btn btn-out" onclick="resetF()">Reset</button>
+      <button class="btn" onclick="load()" title="Load the latest data"><span id="icSync"></span>Sync</button>
+    </div>
+  </div>
+  <div id="demoRib" class="demo-rib" hidden><span id="icDemo"></span><span><b>Mock-up — illustrative data only.</b> All answers, classifications and values are invented to show how the dashboard works (Phase 0). They are not real Member State data and must not be quoted. <a href="#" onclick="resetDemo();return false">Reset demo data</a></span></div>
+  <div id="draftNote" class="note-band" hidden><span id="icInfo"></span><span><b>Drafts included.</b> Rows marked DRAFT have not been validated by WHO and are visible only to you. Viewers see validated data only.</span></div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="seg-nav">
+    <button class="vb on" data-v="ready" onclick="sw('ready')"></button>
+    <button class="vb" data-v="avail" onclick="sw('avail')"></button>
+    <button class="vb" data-v="ind" onclick="sw('ind')"></button>
+    <button class="vb" data-v="prog" onclick="sw('prog')"></button>
+  </div>
+
+  <!-- READINESS -->
+  <div class="pn sh" id="p-ready">
+    <div class="cr c3">
+      <div class="cc"><h3><span class="i" data-ic="globe"></span>Participation<span class="sub">number of Member States</span></h3><div class="cb h260"><canvas id="c_part"></canvas></div>
+        <div class="tnote"><b>Participating</b> = data submitted for the selected reporting year.</div></div>
+      <div class="cc"><h3><span class="i" data-ic="compass"></span>Readiness type<span class="sub">click a slice to filter</span></h3><div class="cb h260"><canvas id="c_type"></canvas></div>
+        <div class="tnote">Type = <b>draft rule</b>, to be agreed with Member States: <b>A</b> all five criteria Fully · <b>C</b> criterion 5 No and criterion 1 not Fully · <b>B</b> all other answers. WHO confirms the type with each Member State.</div></div>
+      <div class="cc"><h3><span class="i" data-ic="check"></span>Five criteria across the Region<span class="sub">number of Member States</span></h3><div class="cb h340"><canvas id="c_crit"></canvas></div></div>
+    </div>
+    <div class="cr s1"><div class="cc"><h3><span class="i" data-ic="table"></span>Readiness by Member State<span class="sub">No · Partially · Fully · Member States with data only</span></h3>
+      <div class="tw" style="max-height:none"><table class="mx" id="t_ready"></table></div>
+      <div class="tnote"><b>Type</b> = readiness type from the five criteria (draft rule, to be agreed with Member States):
+        <b>A · Data-ready</b> all five criteria Fully · <b>B · Partially ready</b> any other set of answers · <b>C · Emerging</b> criterion 5 (routine capture) No and criterion 1 (providers licensed) not Fully.</div></div></div>
+  </div>
+
+  <!-- MDS AVAILABILITY -->
+  <div class="pn" id="p-avail">
+    <div class="cr c21">
+      <div class="cc"><h3><span class="i" data-ic="bars"></span>MDS items across the Region<span class="sub">number of Member States</span>
+        <label class="srtc">Sort<select id="itSort" onchange="render()"><option value="0">Item order (1–12)</option><option value="-1">Available: high → low</option><option value="1">Available: low → high</option></select></label></h3><div class="cb h340"><canvas id="c_avail"></canvas></div></div>
+      <div class="cc"><h3><span class="i" data-ic="layers"></span>Core MDS items available<span class="sub">8 core items</span></h3>
+        <div class="gwrap"><canvas id="c_gauge"></canvas><div class="gval"><b id="gPct">—</b><span id="gTxt"></span></div></div>
+        <div class="tnote">Share of core item × Member State cells marked <b>Available</b> (Partly not counted), among Member States with data for the selected year.</div></div>
+    </div>
+    <div class="cr s1"><div class="cc"><h3><span class="i" data-ic="table"></span>Availability matrix<span class="sub">● Available · ◐ Partly · ○ Not available — Member States with data only · hover a cell for the data source</span></h3>
+      <div class="tw" style="max-height:none"><table class="mx" id="t_avail"></table></div>
+      <div class="tnote"><b>Type</b> = readiness type from the five criteria (draft rule, to be agreed with Member States):
+        <b>A · Data-ready</b> all five criteria Fully · <b>B · Partially ready</b> any other set of answers · <b>C · Emerging</b> criterion 5 (routine capture) No and criterion 1 (providers licensed) not Fully.</div></div></div>
+  </div>
+
+  <!-- INDICATORS -->
+  <div class="pn" id="p-ind">
+    <div class="note-band"><span data-ic="alert"></span><span><b>Read every value with its metadata.</b> A national claims database and a handful of sentinel clinics are not comparable. Bars are coloured by coverage and countries are shown alphabetically, never sorted by value.</span></div>
+    <div class="cr s1"><div class="cc"><h3><span class="i" data-ic="trend"></span><span id="indTtl">Indicator</span><span class="sub">hover a bar for source, coverage and coding method</span></h3>
+      <div class="isel" id="indSel"></div>
+      <div class="cb h340"><canvas id="c_ind"></canvas></div>
+      <div class="lg" id="covLg"></div></div></div>
+    <div class="cr s1"><div class="cc"><h3><span class="i" data-ic="table"></span>Indicator values by Member State<span class="sub">distributions and top-10 lists → Country Profile</span></h3>
+      <div class="tw"><table id="t_ind"></table></div></div></div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="pn" id="p-prog">
+    <div class="cr">
+      <div class="cc"><h3><span class="i" data-ic="history"></span>Readiness type by reporting year<span class="sub">number of Member States</span></h3><div class="cb h300"><canvas id="c_prog_type"></canvas></div></div>
+      <div class="cc"><h3><span class="i" data-ic="layers"></span>Core MDS items available<span class="sub">% of core items · dashed line = benchmark (all core items, 100%)</span></h3><div class="cb h300"><canvas id="c_prog_av"></canvas></div></div>
+    </div>
+    <div class="cr s1"><div class="cc"><h3><span class="i" data-ic="refresh"></span>Change by Member State<span class="sub">readiness type · core items available (of 8)</span></h3>
+      <div class="tw"><table id="t_prog"></table></div></div></div>
+  </div>
+</div>
+
+<div class="ovly" id="profOv" onclick="if(event.target===this)closeProf()"><div class="mdl">
+  <button class="x" onclick="closeProf()" aria-label="Close">×</button>
+  <div id="profBody"></div>
+  <div style="margin-top:18px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="TM1.printProfile(CUR)"><span id="icPrint"></span>Print Country Profile</button><button class="btn btn-out" onclick="closeProf()">Close</button></div>
+</div></div>
+
+<script>/*__COMMON_JS__*/</script>
+<script>
+const { $, esc, icon, CNAME, COUNTRIES, CRITERIA, MDS_ITEMS, INDICATORS, TYPES, COVERAGE, SOURCES, METHODS, lbl, AVAIL, AVAIL_SYM } = TM1;
+let ALL = [], cv = 'ready', CUR = null, indK = 'i1';
+let KP = {}, GP = 0;   // last values shown (KPIs, gauge) → numbers count from there
+let avSort = 0;        // availability matrix, "Core available": 0 = A–Z, -1 = high → low, 1 = low → high
+let chartBase = 0;              // extra chart delay (ms) while a panel is rising in
+const countEl = (k, v, suf) => '<span data-k="' + k + '" data-to="' + v + '"' + (suf ? ' data-suf="' + suf + '"' : '') + '>' + v + (suf || '') + '</span>';
+const charts = {};
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const typeColor = t => css({ A: '--tA', B: '--tB', C: '--tC' }[t] || '--tN');
+const covColor = c => css({ national: '--pri', subnational: '--cy', sentinel: '--or' }[c] || '--mu2');
+const CORE = MDS_ITEMS.filter(i => i.tier === 'core');
+const coreN = s => CORE.filter(i => ((s.availability || {})[i.k] || {}).v === 'available').length;
+
+/* ── Chart.js look: IBM Plex Sans, dashed grid, rounded bars ── */
+function themeCharts() {
+  Chart.defaults.font.family = "'IBM Plex Sans', system-ui, sans-serif";
+  Chart.defaults.font.size = 12;
+  Chart.defaults.color = css('--mu');
+  Chart.defaults.borderColor = css('--bd');
+  Chart.defaults.plugins.legend.labels.usePointStyle = true;
+  Chart.defaults.plugins.legend.labels.pointStyle = 'rectRounded';
+  Chart.defaults.plugins.legend.labels.boxWidth = 10;
+  Chart.defaults.plugins.tooltip.backgroundColor = css('--hl');
+  Chart.defaults.plugins.tooltip.titleColor = css('--sf');
+  Chart.defaults.plugins.tooltip.bodyColor = css('--sf');
+  Chart.defaults.plugins.tooltip.padding = 10;
+  Chart.defaults.plugins.tooltip.cornerRadius = 8;
+  /* Motion mode: bars grow one after another (left → right, series by series); the gauge sweeps. */
+  const mo = TM1.motionOn(), A = Chart.defaults.animation, base = TM1.enterPending() ? 650 : chartBase;   // start once the card has risen in
+  A.duration = mo ? 900 : 0; A.easing = 'easeOutQuart';
+  A.delay = mo ? c => (c.type === 'data' && c.mode === 'default' ? base + c.dataIndex * 45 + c.datasetIndex * 110 : 0) : 0;
+  Chart.defaults.transitions.active.animation.duration = mo ? 250 : 0;
+}
+const grid = () => ({ color: css('--bd'), borderDash: [4, 4], drawTicks: false });
+const axis = extra => Object.assign({ grid: grid(), border: { display: false }, ticks: { padding: 8 } }, extra || {});
+function mkChart(id, cfg) { if (charts[id]) charts[id].destroy(); charts[id] = new Chart($(id), cfg); return charts[id]; }
+
+/* ── Values on the marks (plugin VL) ──
+   Every bar and pie slice carries its value: inside stacked segments and slices (when it fits),
+   above single bars. Labels fade in as the marks grow. The glass theme (index_glass.html sets
+   --bar-gloss:1) also gives bars a glossy pill look and pies a glass sheen. */
+const GL = () => css('--bar-gloss') === '1';
+/* glass: bars are pills; a stacked bar is ONE pill (only its outer ends rounded) */
+function stackEnds(ch, di, i) { const on = ch.data.datasets.map((d, k) => ch.isDatasetVisible(k) && +d.data[i] > 0); return [!on.slice(0, di).some(Boolean), !on.slice(di + 1).some(Boolean)]; }
+function pillEnds(x) { const [a, b] = stackEnds(x.chart, x.datasetIndex, x.dataIndex), R = 999, A = a ? R : 0, B = b ? R : 0;
+  return x.chart.options.indexAxis === 'y' ? { topLeft: A, bottomLeft: A, topRight: B, bottomRight: B } : { bottomLeft: A, bottomRight: A, topLeft: B, topRight: B }; }
+const BAR = stacked => ({ borderRadius: !GL() ? 6 : stacked ? pillEnds : 999, borderSkipped: false });
+const PIE = d => ({ data: d, borderColor: GL() ? 'rgba(255,255,255,.85)' : css('--sf'), borderWidth: d.filter(v => v > 0).length > 1 ? 2 : 0, hoverOffset: 6 });   // one slice → no seam
+function rgbOf(c) { const m = /^#([0-9a-f]{6})$/i.exec(c || ''); return m ? [0, 2, 4].map(i => parseInt(m[1].substr(i, 2), 16)) : null; }
+function inkOn(c) {   // near-black or white, whichever reads better on the fill
+  const v = rgbOf(c); if (!v) return css('--hl');
+  const L = v.map(x => { x /= 255; return x <= .03928 ? x / 12.92 : Math.pow((x + .055) / 1.055, 2.4); }), l = .2126 * L[0] + .7152 * L[1] + .0722 * L[2];
+  return (l + .05) / .05 >= 1.05 / (l + .05) ? '#111114' : '#FFFFFF';
+}
+function barBox(el) {
+  const p = el.getProps(['x', 'y', 'base', 'width', 'height']), hz = el.horizontal;
+  const l = hz ? Math.min(p.x, p.base) : p.x - p.width / 2, r = hz ? Math.max(p.x, p.base) : p.x + p.width / 2;
+  const t = hz ? p.y - p.height / 2 : Math.min(p.y, p.base), b = hz ? p.y + p.height / 2 : Math.max(p.y, p.base);
+  return { l, t, w: r - l, h: b - t, hz };
+}
+function grown(el, pie) {   // 0 → 1 while the mark animates in
+  const f = el.getProps(['x', 'y', 'base', 'startAngle', 'endAngle'], true);
+  const F = pie ? f.endAngle - f.startAngle : el.horizontal ? f.x - f.base : f.y - f.base;
+  const C = pie ? el.endAngle - el.startAngle : el.horizontal ? el.x - el.base : el.y - el.base;
+  return F ? Math.max(0, Math.min(1, C / F)) : 1;
+}
+function glossBars(ch, meta, stacked) {   // light along the top edge, faint shade below, bright inner rim
+  const c = ch.ctx;
+  meta.data.forEach((el, i) => {
+    const { l, t, w, h, hz } = barBox(el); if (w < 3 || h < 3) return;
+    const R = Math.min(w, h) / 2, [a, b] = stacked ? stackEnds(ch, meta.index, i) : [1, 1], A = a ? R : 0, B = b ? R : 0;
+    c.save(); c.beginPath(); c.roundRect(l, t, w, h, hz ? [A, B, B, A] : [B, B, A, A]); c.clip();   // same shape as the bar
+    const g = hz ? c.createLinearGradient(0, t, 0, t + h) : c.createLinearGradient(l, 0, l + w, 0);
+    g.addColorStop(0, 'rgba(255,255,255,.55)'); g.addColorStop(.45, 'rgba(255,255,255,.12)'); g.addColorStop(.6, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(0,0,0,.10)');
+    c.fillStyle = g; c.fillRect(l, t, w, h);
+    c.lineWidth = 1.5; c.strokeStyle = 'rgba(255,255,255,.6)'; c.stroke();
+    c.restore();
+  });
+}
+function glossPie(c, meta) {
+  const a = meta.data[0]; if (!a) return;
+  const { x, y, outerRadius: R } = a.getProps(['x', 'y', 'outerRadius']); if (!(R > 4)) return;
+  c.save(); c.beginPath(); c.arc(x, y, R, 0, Math.PI * 2); c.clip();
+  const g = c.createRadialGradient(x - R * .35, y - R * .45, 0, x - R * .2, y - R * .25, R * 1.05);
+  g.addColorStop(0, 'rgba(255,255,255,.42)'); g.addColorStop(.55, 'rgba(255,255,255,.06)'); g.addColorStop(1, 'rgba(0,0,0,.08)');
+  c.fillStyle = g; c.fillRect(x - R, y - R, 2 * R, 2 * R);
+  c.lineWidth = 2; c.strokeStyle = 'rgba(255,255,255,.7)'; c.stroke();
+  c.restore();
+}
+const VL = { id: 'vl',
+  afterDatasetDraw(ch, a, o) { if (!GL()) return; if (a.meta.type === 'bar') glossBars(ch, a.meta, o.stack); else if (a.meta.type === 'pie') glossPie(ch.ctx, a.meta); },
+  afterDatasetsDraw(ch, _, o) {
+    const c = ch.ctx, fmt = o.fmt || (v => TM1.fmtNum(v)), FONT = "'IBM Plex Sans', system-ui, sans-serif";
+    c.save(); c.textAlign = 'center';
+    ch.data.datasets.forEach((ds, di) => {
+      const m = ch.getDatasetMeta(di), pie = m.type === 'pie'; if (!ch.isDatasetVisible(di) || (m.type !== 'bar' && !pie)) return;
+      const tot = pie ? ds.data.reduce((n, v, i) => n + (ch.getDataVisibility(i) ? +v || 0 : 0), 0) : 0;
+      m.data.forEach((el, i) => {
+        const v = +ds.data[i]; if (!v || (pie && !ch.getDataVisibility(i))) return;
+        const k = grown(el, pie); if (k < .05) return;
+        const fill = Array.isArray(ds.backgroundColor) ? ds.backgroundColor[i] : ds.backgroundColor;
+        c.globalAlpha = Math.pow(k, 3);
+        if (pie) {   // "n (%)": inside the slice when it fits, else just outside with a short leader line
+          const s = fmt(v) + ' (' + Math.round(100 * v / tot) + '%)', p = el.getProps(['x', 'y', 'outerRadius', 'startAngle', 'endAngle']);
+          const R = p.outerRadius, sw = p.endAngle - p.startAngle, mid = (p.startAngle + p.endAngle) / 2, dx = Math.cos(mid), dy = Math.sin(mid), r = R * .6;
+          c.font = '600 12.5px ' + FONT; c.textBaseline = 'middle'; c.textAlign = 'center'; c.fillStyle = inkOn(fill);
+          if (sw > 6.27) { c.fillText(s, p.x, p.y); return; }   // one full slice
+          if (c.measureText(s).width + 10 < 2 * r * Math.sin(Math.min(sw, Math.PI) / 2)) { c.fillText(s, p.x + dx * r, p.y + dy * r); return; }
+          c.strokeStyle = css('--mu'); c.lineWidth = 1; c.beginPath(); c.moveTo(p.x + dx * (R - 6), p.y + dy * (R - 6)); c.lineTo(p.x + dx * (R + 8), p.y + dy * (R + 8)); c.stroke();
+          c.textAlign = dx >= 0 ? 'left' : 'right'; c.fillStyle = css('--hl'); c.fillText(s, p.x + dx * (R + 11), p.y + dy * (R + 11));
+          return;
+        }
+        c.textAlign = 'center';
+        const s = fmt(v, i), { l, t, w, h, hz } = barBox(el);
+        c.font = '600 11.5px ' + FONT; const tw = c.measureText(s).width;
+        if (o.stack) {   // stacked segments: centred inside when it fits
+          if ((hz ? w : h) < (hz ? tw + 8 : 16) || (hz ? h : w) < (hz ? 13 : tw + 4)) return;
+          c.fillStyle = inkOn(fill); c.textBaseline = 'middle'; c.fillText(s, l + w / 2, t + h / 2);
+        } else {          // single bars: just above the end
+          if (tw > (ch.chartArea.right - ch.chartArea.left) / ds.data.length + 2) return;
+          c.fillStyle = css('--hl'); c.textBaseline = 'bottom'; c.fillText(s, l + w / 2, t - 4);
+        }
+      });
+    });
+    c.restore();
+  } };
+
+async function load() {
+  TM1.setLive('syn');
+  try {
+    const reg = await TM1.api.regional();
+    let rows = reg.map(s => Object.assign(s, { _draft: false }));
+    if (TM1.can.seeDrafts() && $('fDrafts').checked) {
+      const ws = await TM1.api.workspace();
+      const have = new Set(rows.map(s => s.code));
+      ws.filter(s => s.status !== 'validated' && !have.has(s.code)).forEach(s => rows.push(Object.assign(s, { _draft: true })));
+    }
+    ALL = rows; TM1.setLive('ok'); fillYears(); render();
+  } catch (e) { TM1.setLive('err', e.message); TM1.toast(e.message, true); }
+  TM1.entered();
+}
+function fillYears() {
+  const sel = $('fYear'), cur = +sel.value;
+  const ys = [...new Set(ALL.map(s => s.year))].sort((a, b) => b - a);
+  if (!ys.length) ys.push(new Date().getFullYear());
+  sel.innerHTML = ys.map(y => '<option>' + y + '</option>').join('');
+  sel.value = ys.includes(cur) ? cur : ys[0];
+}
+/* One row per Member State for a year (alphabetical), with or without data. */
+function rowsForYear(y) {
+  const by = {}; ALL.filter(s => s.year === y).forEach(s => { by[s.iso3] = s; });
+  const ft = $('fType').value, fm = $('fMS').value;
+  return COUNTRIES.map(([iso3, name]) => ({ iso3, name, s: by[iso3] || null }))
+    .filter(r => !fm || r.iso3 === fm)
+    .filter(r => !ft || (ft === 'none' ? !r.s : TM1.typeOf(r.s) === ft));
+}
+function resetF() { $('fType').value = ''; $('fMS').value = ''; fillYears(); render(); }
+function sw(v) { cv = v; document.querySelectorAll('.vb').forEach(b => b.classList.toggle('on', b.dataset.v === v)); document.querySelectorAll('.pn').forEach(p => p.classList.toggle('sh', p.id === 'p-' + v)); GP = 0; TM1.enter($('p-' + v)); chartBase = 300; render(); chartBase = 0; }
+
+/* ── KPIs with change vs the previous reporting year ── */
+function metrics(rows) {
+  const wd = rows.filter(r => r.s), cells = wd.length * CORE.length;
+  return { n: wd.length, tot: rows.length, A: wd.filter(r => TM1.typeOf(r.s) === 'A').length, B: wd.filter(r => TM1.typeOf(r.s) === 'B').length,
+    C: wd.filter(r => TM1.typeOf(r.s) === 'C').length, core: cells ? Math.round(100 * wd.reduce((n, r) => n + coreN(r.s), 0) / cells) : null,
+    ind: wd.reduce((n, r) => n + INDICATORS.filter(i => ((r.s.indicators || {})[i.k] || {}).reported).length, 0), indMax: wd.length * 6 };
+}
+function delta(cur, prev, prevYear, unit) {
+  if (prev == null || cur == null) return '<span class="muted">No ' + prevYear + ' data to compare</span>';
+  const d = cur - prev, cls = d > 0 ? 'up' : d < 0 ? 'dn' : 'eq';
+  return '<span class="dl ' + cls + '">' + (d > 0 ? '▲ +' : d < 0 ? '▼ ' : '± ') + d + (unit || '') + '</span><span>vs. ' + prevYear + '</span>';
+}
+function rKPI(y) {
+  const m = metrics(rowsForYear(y)), hasPrev = ALL.some(s => s.year === y - 1), p = hasPrev ? metrics(rowsForYear(y - 1)) : {};
+  const K = [
+    ['bl', 'globe', 'Member States with data', countEl('n', m.n) + ' <small>/ ' + m.tot + '</small>', delta(m.n, hasPrev ? p.n : null, y - 1)],
+    ['gn', 'check', 'Type A · <span class="nw">Data-ready</span>', countEl('A', m.A), delta(m.A, hasPrev ? p.A : null, y - 1)],
+    ['bl', 'compass', 'Type B · <span class="nw">Partially ready</span>', countEl('B', m.B), delta(m.B, hasPrev ? p.B : null, y - 1)],
+    ['or', 'alert', 'Type C · <span class="nw">Emerging</span>', countEl('C', m.C), delta(m.C, hasPrev ? p.C : null, y - 1)],
+    ['cy', 'layers', 'Core MDS items available', m.core == null ? '—' : countEl('core', m.core, '%'), delta(m.core, hasPrev ? p.core : null, y - 1, ' pts')],
+    ['pu', 'trend', 'Indicator values reported', countEl('ind', m.ind) + ' <small>/ ' + m.indMax + '</small>', delta(m.ind, hasPrev ? p.ind : null, y - 1)]
+  ];
+  $('kpis').innerHTML = K.map(([c, ic, t, v, d]) => '<div class="kpi ' + c + '"><div class="t"><span>' + t + '</span>' + icon(ic) + '</div><div class="v">' + v + '</div><div class="d">' + d + '</div></div>').join('');
+  TM1.countUp($('kpis'), KP);
+}
+
+function render() {
+  themeCharts();
+  $('draftNote').hidden = !$('fDrafts').checked;
+  const y = +$('fYear').value, rows = rowsForYear(y), withData = rows.filter(r => r.s);
+  rKPI(y);
+  ({ ready: rReady, avail: rAvail, ind: rInd, prog: rProg })[cv](rows, withData, y);
+}
+
+/* ── Readiness ── */
+function rReady(rows, withData) {
+  const cnt = t => withData.filter(r => TM1.typeOf(r.s) === t).length, ft = $('fType').value, nd = rows.length - withData.length;
+  mkChart('c_part', { type: 'pie', data: { labels: ['Participating', 'Not yet participating'],
+      datasets: [Object.assign({ backgroundColor: [css('--pri'), css('--tN')] }, PIE([withData.length, nd]))] },
+    options: { maintainAspectRatio: false, layout: { padding: 24 }, plugins: { legend: { position: 'bottom' } } }, plugins: [VL] });
+  const T = ['A', 'B', 'C', 'none'];
+  mkChart('c_type', { type: 'pie', data: { labels: T.map(k => k === 'none' ? 'No data' : k + ' · ' + TYPES[k]),
+      datasets: [Object.assign({ backgroundColor: T.map(k => typeColor(k === 'none' ? 'N' : k)) }, PIE(T.map(k => k === 'none' ? nd : cnt(k))))] },
+    options: { maintainAspectRatio: false, layout: { padding: 24 }, plugins: { legend: { position: 'bottom' } },
+      onClick: (e, els) => { if (!els.length) return; const k = T[els[0].index]; $('fType').value = ft === k ? '' : k; render(); },
+      onHover: (e, els) => { e.native.target.style.cursor = els.length ? 'pointer' : ''; } }, plugins: [VL] });
+  const ans = ['full', 'partial', 'no'], col = [css('--aFull'), css('--aPart'), css('--aNo')];
+  mkChart('c_crit', { type: 'bar', data: { labels: CRITERIA.map((c, i) => (i + 1) + '. ' + c.short),
+      datasets: ans.map((a, j) => Object.assign({ label: TM1.ANSWERS[a], backgroundColor: col[j], maxBarThickness: 24,
+        data: CRITERIA.map(c => withData.filter(r => ((r.s.readiness || {})[c.k] || {}).v === a).length) }, BAR(true))) },
+    options: { indexAxis: 'y', maintainAspectRatio: false, scales: { x: axis({ stacked: true, ticks: { precision: 0, padding: 8 } }), y: { stacked: true, grid: { display: false }, border: { display: false } } }, plugins: { legend: { position: 'bottom' }, vl: { stack: true } } }, plugins: [VL] });
+  let h = '<tr><th>Member State</th><th>Type</th>' + CRITERIA.map((c, i) => '<th title="' + esc(c.label) + '">' + (i + 1) + '. ' + esc(c.short) + '</th>').join('') + '<th>Status</th></tr>';
+  h += withData.map(r => '<tr class="clk' + (r.s._draft ? ' dr' : '') + '" onclick="openProf(\'' + r.s.code + '\')"><td class="ms">' + esc(r.name) + '</td><td>' + TM1.typeBadge(TM1.typeOf(r.s)) + '</td>' +
+      CRITERIA.map(c => '<td>' + TM1.chipA(((r.s.readiness || {})[c.k] || {}).v) + '</td>').join('') + '<td>' + TM1.stBadge(r.s.status) + '</td></tr>').join('');
+  $('t_ready').innerHTML = withData.length ? h : '<tr><td class="nodata">No Member State with data matches the filters.</td></tr>';
+}
+
+/* ── MDS availability ── */
+function rAvail(rows, withData) {
+  const tiers = [['core', 'Core (8)'], ['expanded', 'Expanded (3)'], ['metadata', 'Meta']];
+  const sa = avSort < 0 ? '↓' : avSort > 0 ? '↑' : '⇅';
+  let h = '<tr><th rowspan="2">Member State</th><th rowspan="2">Type</th>' + tiers.map(([t, l]) => '<th class="grp" colspan="' + MDS_ITEMS.filter(i => i.tier === t).length + '">' + l + '</th>').join('') +
+    '<th rowspan="2" aria-sort="' + (avSort < 0 ? 'descending' : avSort > 0 ? 'ascending' : 'none') + '"><button class="srt' + (avSort ? ' on' : '') + '" onclick="sortAv()" title="Sort by core items available: high → low, low → high, then back to A–Z">Core available<span class="sa">' + sa + '</span></button></th></tr><tr>' +
+    MDS_ITEMS.map((i, n) => '<th class="v" title="' + esc(i.label) + '"><span>' + (n + 1) + '. ' + esc(i.short) + '</span></th>').join('') + '</tr>';
+  const list = avSort ? withData.slice().sort((a, b) => avSort * (coreN(a.s) - coreN(b.s))) : withData;   // stable sort: ties stay A–Z
+  h += list.map(r => {
+    const av = r.s.availability || {};
+    return '<tr class="clk' + (r.s._draft ? ' dr' : '') + '" onclick="openProf(\'' + r.s.code + '\')"><td class="ms">' + esc(r.name) + '</td><td>' + TM1.typeBadge(TM1.typeOf(r.s)) + '</td>' +
+      MDS_ITEMS.map(i => { const a = av[i.k] || {}; return '<td class="c"><span class="cell ' + (a.v ? 'av-' + a.v : 'none') + '" title="' + esc(i.label + ': ' + (AVAIL[a.v] || 'not answered') + (a.src ? ' · ' + lbl(SOURCES, a.src, a.srcOther) : '')) + '">' + (AVAIL_SYM[a.v] || '·') + '</span></td>'; }).join('') +
+      '<td><b>' + coreN(r.s) + '</b> <span class="muted">/ 8</span></td></tr>';
+  }).join('');
+  $('t_avail').innerHTML = withData.length ? h : '<tr><td class="nodata">No Member State with data matches the filters.</td></tr>';
+  const st = ['available', 'partly', 'not_available'], col = [css('--mAv'), css('--mPt'), css('--mNo')];
+  const cnt = (i, s) => withData.filter(r => ((r.s.availability || {})[i.k] || {}).v === s).length, so = +$('itSort').value;
+  const items = MDS_ITEMS.map((i, n) => ({ i, n })), ord = so ? items.slice().sort((a, b) => so * (cnt(a.i, 'available') - cnt(b.i, 'available')) || so * (cnt(a.i, 'partly') - cnt(b.i, 'partly'))) : items;
+  mkChart('c_avail', { type: 'bar', data: { labels: ord.map(o => (o.n + 1) + '. ' + o.i.short),
+      datasets: st.map((s, j) => Object.assign({ label: AVAIL[s], backgroundColor: col[j], maxBarThickness: 18, data: ord.map(o => cnt(o.i, s)) }, BAR(true))) },
+    options: { indexAxis: 'y', maintainAspectRatio: false, scales: { x: axis({ stacked: true, ticks: { precision: 0, padding: 8 } }), y: { stacked: true, grid: { display: false }, border: { display: false } } }, plugins: { legend: { position: 'bottom' }, vl: { stack: true } } }, plugins: [VL] });
+  const cells = withData.length * CORE.length, av = withData.reduce((n, r) => n + coreN(r.s), 0), pct = cells ? Math.round(100 * av / cells) : 0;
+  mkChart('c_gauge', { type: 'doughnut', data: { datasets: [{ data: [av, Math.max(cells - av, 0)], backgroundColor: [css('--gn'), css('--bd')], borderWidth: 0, borderRadius: 6 }] },
+    options: { maintainAspectRatio: false, rotation: -90, circumference: 180, cutout: '78%', plugins: { legend: { display: false }, tooltip: { enabled: false } } } });
+  if (cells) { TM1.tween($('gPct'), pct, GP, '%'); GP = pct; } else { $('gPct').textContent = '—'; GP = 0; }
+  $('gTxt').textContent = cells ? av + ' of ' + cells + ' core item × Member State cells' : 'No data for this year';
+}
+function sortAv() { avSort = avSort === 0 ? -1 : avSort === -1 ? 1 : 0; render(); }
+
+/* ── Indicators ── */
+function rInd(rows, withData) {
+  const numInd = INDICATORS.filter(i => i.kind === 'num');
+  $('indSel').innerHTML = numInd.map(i => '<button class="' + (i.k === indK ? 'on' : '') + '" onclick="indK=\'' + i.k + '\';render()">' + esc(i.label) + '</button>').join('');
+  const ind = INDICATORS.find(i => i.k === indK);
+  $('indTtl').textContent = ind.label + (ind.unit === '%' ? ' (%)' : '');
+  const rep = withData.filter(r => ((r.s.indicators || {})[indK] || {}).reported && TM1.num(r.s.indicators[indK].value));
+  const pc = ind.unit === '%';
+  mkChart('c_ind', { type: 'bar', data: { labels: rep.map(r => r.name + (r.s._draft ? ' (draft)' : '')),
+      datasets: [Object.assign({ label: ind.label, data: rep.map(r => +r.s.indicators[indK].value), backgroundColor: rep.map(r => covColor(r.s.indicators[indK].cov)), maxBarThickness: 46 }, BAR(), GL() ? {} : { borderRadius: 8 })] },
+    options: { maintainAspectRatio: false, layout: { padding: { top: 22 } }, plugins: { legend: { display: false }, vl: { fmt: v => TM1.fmtNum(v) + (pc ? '%' : '') }, tooltip: { callbacks: { afterLabel: c => { const x = rep[c.dataIndex].s.indicators[indK];
+      return ['Source: ' + (lbl(SOURCES, x.src, x.srcOther) || '—'), 'Coverage: ' + (COVERAGE[x.cov] || '—') + (x.covNote ? ' (' + x.covNote + ')' : ''), 'Coding: ' + (lbl(METHODS, x.method, x.methodOther) || '—')]; } } } },
+      scales: { y: axis(pc ? { beginAtZero: true, max: 100, ticks: { callback: v => v + '%', padding: 8 } } : { beginAtZero: true }), x: { grid: { display: false }, border: { display: false } } } }, plugins: [VL] });
+  $('covLg').innerHTML = Object.entries(COVERAGE).map(([k, l]) => '<span><i style="background:' + covColor(k) + '"></i>' + l + '</span>').join('') + '<span>· ' + rep.length + ' of ' + withData.length + ' Member States with data report this indicator</span>';
+  const cell = (s, i) => { const x = (s.indicators || {})[i.k] || {};
+    if (!x.reported) return '<td class="muted">' + (x.reported === false ? 'Not reported' : '—') + '</td>';
+    const v = i.kind === 'num' ? '<b style="color:var(--hl)">' + TM1.fmtNum(x.value) + '</b> <span class="muted">' + (i.unit === '%' ? '%' : '/1000') + '</span>' : '<span class="chip av-available">Reported</span>';
+    return '<td>' + v + TM1.metaLine(x) + '</td>'; };
+  $('t_ind').innerHTML = '<tr><th>Member State</th>' + INDICATORS.map(i => '<th title="' + esc(i.label) + '">' + esc(i.label) + '</th>').join('') + '</tr>' +
+    (withData.length ? withData.map(r => '<tr class="clk' + (r.s._draft ? ' dr' : '') + '" onclick="openProf(\'' + r.s.code + '\')"><td class="ms">' + esc(r.name) + '</td>' + INDICATORS.map(i => cell(r.s, i)).join('') + '</tr>').join('')
+      : '<tr><td colspan="7" class="nodata">No Member State with data for these filters.</td></tr>');
+}
+
+/* ── Progress over time ── */
+function rProg(rows) {
+  const ys = [...new Set(ALL.map(s => s.year))].sort((a, b) => a - b);
+  const keep = new Set(rows.map(r => r.iso3));
+  const by = y => ALL.filter(s => s.year === y && keep.has(s.iso3));
+  mkChart('c_prog_type', { type: 'bar', data: { labels: ys, datasets: ['A', 'B', 'C'].map(t => Object.assign({ label: t + ' · ' + TYPES[t], backgroundColor: typeColor(t), maxBarThickness: 56, data: ys.map(y => by(y).filter(s => TM1.typeOf(s) === t).length) }, BAR(true))) },
+    options: { maintainAspectRatio: false, scales: { x: { stacked: true, grid: { display: false }, border: { display: false } }, y: axis({ stacked: true, ticks: { precision: 0, padding: 8 } }) }, plugins: { legend: { position: 'bottom' }, vl: { stack: true } } }, plugins: [VL] });
+  const pct = ys.map(y => { const L = by(y); return L.length ? Math.round(100 * L.reduce((n, s) => n + coreN(s), 0) / (L.length * 8)) : 0; });
+  const barC = css('--wb2'), benC = css('--mu');   // one colour for every year; benchmark = all core items (100%)
+  mkChart('c_prog_av', { type: 'bar', data: { labels: ys, datasets: [
+      Object.assign({ type: 'bar', label: '% core items available', data: pct, backgroundColor: barC, maxBarThickness: 56, order: 1 }, BAR()),   // order 1: drawn under the line
+      { type: 'line', label: 'Benchmark (100%)', data: ys.map(() => 100), borderColor: benC, backgroundColor: benC, borderWidth: 2, borderDash: [6, 5], pointRadius: 0, pointHoverRadius: 0, order: 0 }] },
+    options: { maintainAspectRatio: false, layout: { padding: { top: 22 } }, scales: { y: axis({ beginAtZero: true, max: 100, ticks: { callback: v => v + '%', padding: 8 } }), x: { grid: { display: false }, border: { display: false } } }, plugins: { vl: { fmt: v => v + '%' }, legend: { position: 'bottom', labels: { sort: (a, b) => a.datasetIndex - b.datasetIndex } } } }, plugins: [VL] });
+  const g = {}; ALL.forEach(s => { (g[s.iso3] = g[s.iso3] || {})[s.year] = s; });
+  const list = rows.filter(r => g[r.iso3]);
+  let h = '<tr><th>Member State</th>' + ys.map(y => '<th>' + y + '</th>').join('') + '<th>Change (last two years with data)</th></tr>';
+  h += list.map(r => {
+    const gg = g[r.iso3], yy = ys.filter(y => gg[y]);
+    let chg = '<span class="muted">—</span>';
+    if (yy.length > 1) {
+      const a = gg[yy[yy.length - 2]], b = gg[yy[yy.length - 1]], ta = TM1.typeOf(a), tb = TM1.typeOf(b), d = coreN(b) - coreN(a);
+      chg = (ta !== tb ? 'Type ' + ta + ' → <b>' + tb + '</b> · ' : 'Type unchanged · ') + '<span class="dl ' + (d > 0 ? 'up' : d < 0 ? 'dn' : 'eq') + '">' + (d > 0 ? '▲ +' : d < 0 ? '▼ ' : '± ') + d + ' core item' + (Math.abs(d) === 1 ? '' : 's') + '</span>';
+    }
+    return '<tr><td class="ms">' + esc(r.name) + '</td>' + ys.map(y => gg[y] ? '<td class="clk" onclick="openProf(\'' + gg[y].code + '\')">' + TM1.typeBadge(TM1.typeOf(gg[y])) + ' <span style="margin-left:4px">' + coreN(gg[y]) + '/8</span>' + (gg[y]._draft ? ' <span class="chip a-none">draft</span>' : '') + '</td>' : '<td class="muted">—</td>').join('') + '<td>' + chg + '</td></tr>';
+  }).join('');
+  $('t_prog').innerHTML = list.length ? h : '<tr><td class="nodata">No data for these filters.</td></tr>';
+}
+
+/* ── Country profile ── */
+function openProf(code) { CUR = ALL.find(s => s.code === code); if (!CUR) return; $('profBody').innerHTML = TM1.profileHTML(CUR); $('profOv').classList.add('sh'); }
+function closeProf() { $('profOv').classList.remove('sh'); }
+function resetDemo() { if (!confirm('Reset the demo to its original illustrative data? All demo changes in this browser will be lost.')) return; TM1.api.reset(); load(); TM1.toast('Demo data reset.'); }
+addEventListener('keydown', e => { if (e.key === 'Escape') closeProf(); });
+
+/* ── Init ── */
+const NAV = { ready: ['compass', 'Readiness'], avail: ['table', 'MDS availability'], ind: ['trend', 'Indicators'], prog: ['history', 'Progress over time'] };
+document.querySelectorAll('.vb').forEach(b => { const [ic, l] = NAV[b.dataset.v]; b.innerHTML = icon(ic) + l; });
+document.querySelectorAll('[data-ic]').forEach(e => { e.innerHTML = icon(e.dataset.ic); });
+$('icSync').innerHTML = icon('refresh'); $('icPrint').innerHTML = icon('print'); $('icCal').innerHTML = icon('calendar'); $('icDemo').innerHTML = icon('alert'); $('icInfo').innerHTML = icon('info');
+$('fMS').innerHTML = '<option value="">All Member States</option>' + COUNTRIES.map(([k, n]) => '<option value="' + k + '">' + esc(n) + '</option>').join('');
+$('draftWrap').hidden = !TM1.can.seeDrafts();
+$('demoRib').hidden = TM1.LIVE; TM1.sampleRibbon($('demoRib'));
+window.addEventListener('tm1-enter', () => { KP = {}; GP = 0; });   // tab shown again → numbers count from 0
+window.addEventListener('tm1-data', load);
+window.addEventListener('tm1-theme', render);
+load();
+</script>
+</body>
+</html>

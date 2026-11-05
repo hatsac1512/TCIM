@@ -1,0 +1,562 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TM1 MDS Dashboard · Western Pacific Region</title>
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   ⚙️ CONFIGURATION — the only part you need to edit.
+   • Leave both values empty  → DEMO mode: an illustrative mock-up (Phase 0)
+     with demo accounts; data stay in this browser only.
+   • Paste your Supabase project URL + publishable (anon) key → LIVE mode.
+     Supabase: Settings → API. NEVER paste the service_role / secret key.
+     Run tm1_mds_supabase_schema.sql in the Supabase SQL editor first.
+   ═══════════════════════════════════════════════════════════════════ */
+window.TM1_CONFIG = {
+  SUPABASE_URL:  "https://npsdcxdbtafjlkhedgyd.supabase.co",   // project TCIM
+  SAMPLE_DATA:   true,   // database holds invented sample data for presentations → label it on every page. Set false (and run tm1_remove_sample_data.sql) before real use
+  SUPABASE_ANON: "sb_publishable_uqN_-3oDU5uBPYlxETLDdw_tfKhgcWU"   // publishable key (public by design)
+};
+</script>
+<script>(function(){var d=document.documentElement;try{var t=localStorage.getItem('tm1_theme');d.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){d.setAttribute('data-theme','light');}var m=null;try{m=localStorage.getItem('tm1_motion');}catch(e){}if(m!=='on'&&m!=='off')m=(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)?'off':'on';d.setAttribute('data-motion',m);})();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout inspired by the Dribbble shot "Shopeers — AI-Powered B2B eCommerce Analytics Dashboard" (Dipa Inhouse) */
+:root{ --bg:#F3F5F9; --sf:#FFFFFF; --sf2:#F8FAFC; --bd:#E7EAF0; --bd2:#D8DEE8; --tx:#475467; --hl:#101828; --mu:#8A94A6;
+  --pri:#1F6FEB; --pri2:#1859C4; --pri-soft:#EAF1FE; --or:#E8870B; --or-soft:#FFF3E0; --gn:#12A150; --gn-soft:#E6F6EC; --rd:#E5484D; --fld:#FFFFFF;
+  --sh-lg:0 24px 56px rgba(16,24,40,.16) }
+/* Dark theme: WHO navy, taken from the sidebar WHO card (#0B3A82 → #1F6FEB) */
+:root[data-theme="dark"]{ --bg:#051631; --sf:#0B2752; --sf2:#082042; --bd:#18396A; --bd2:#234A82; --tx:#C3D3EB; --hl:#F5F8FF; --mu:#8FA7CC;
+  --pri:#4C8DFF; --pri2:#3B7BF0; --pri-soft:rgba(76,141,255,.18); --or:#FBA94C; --or-soft:rgba(251,169,76,.14); --gn:#34C77B; --gn-soft:rgba(52,199,123,.14); --rd:#F87171; --fld:#071C3B;
+  --sh-lg:0 24px 56px rgba(1,8,24,.6); color-scheme:dark }
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:var(--tx);display:flex;height:100vh;overflow:hidden;font-size:14px}
+button,input,select{font-family:inherit}
+[hidden]{display:none!important}
+.ic{width:18px;height:18px;flex:0 0 auto;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* ── Sidebar ── */
+.sb{flex:0 0 252px;display:flex;flex-direction:column;background:var(--sf);border-right:1px solid var(--bd);min-height:0}
+/* Animated bubble background (canvas behind everything); sidebar and top bar are frosted glass over it. */
+#bub{position:fixed;inset:0;z-index:0;pointer-events:none}
+.sb,.col{position:relative;z-index:1}
+.sb,.tb{background:color-mix(in srgb,var(--sf) 72%,transparent)!important;backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%)}
+.sb-brand{display:flex;align-items:center;gap:11px;height:68px;padding:0 20px;border-bottom:1px solid var(--bd)}
+.logo{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--pri);color:#fff;font-weight:700;font-size:.78rem;letter-spacing:.3px}
+.sb-brand b{display:block;color:var(--hl);font-size:1.02rem;font-weight:600;letter-spacing:-.2px;line-height:1.2}
+.sb-brand span{display:block;color:var(--mu);font-size:.72rem}
+.sb-nav{padding:16px 12px;display:flex;flex-direction:column;gap:4px}
+.sb-sec{font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--mu);padding:6px 12px 6px}
+.nv{position:relative;display:flex;align-items:center;gap:11px;width:100%;height:42px;padding:0 12px;border:0;border-radius:10px;background:transparent;color:var(--tx);font-size:.88rem;font-weight:500;cursor:pointer;text-align:left}
+.nv:hover{background:var(--sf2);color:var(--hl)}
+.nv.on{background:var(--pri-soft);color:var(--pri)}
+.nv.on::before{content:'';position:absolute;left:-12px;top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0;background:var(--pri)}
+.nb{margin-left:auto;min-width:22px;height:20px;padding:0 7px;border-radius:10px;background:var(--gn-soft);color:var(--gn);font-size:.72rem;font-weight:600;display:grid;place-items:center}
+.sb-gap{flex:1}
+.sb-card{margin:12px;padding:16px;border-radius:14px;color:#fff;background:linear-gradient(150deg,#0B3A82 0%,#1F6FEB 100%);position:relative;overflow:hidden}
+.sb-card::after{content:'';position:absolute;right:-30px;top:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.08)}
+.sb-card img{height:38px;width:auto;display:block;filter:brightness(0) invert(1);margin-bottom:10px}
+.sb-card b{display:block;font-size:.86rem;font-weight:600;margin-bottom:3px}
+.sb-card span{display:block;font-size:.74rem;opacity:.82;line-height:1.45}
+.sb-card .md{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.16);font-size:.72rem;font-weight:500}
+.sb-card .md::before{content:'';width:7px;height:7px;border-radius:50%;background:#FBBF5C}
+.sb-card .md.live::before{background:#5EE3A0}
+
+/* ── Top bar ── */
+.col{flex:1 1 auto;display:flex;flex-direction:column;min-width:0}
+.tb{flex:0 0 68px;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:0 24px;background:var(--sf);border-bottom:1px solid var(--bd)}
+.tb-l{display:flex;align-items:center;gap:12px;min-width:0}
+.crumb{font-size:.84rem;color:var(--mu);white-space:nowrap}
+.crumb b{color:var(--hl);font-weight:600}
+.tag{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;font-size:.72rem;font-weight:500;background:var(--or-soft);color:var(--or);white-space:nowrap}
+.tag.live{background:var(--gn-soft);color:var(--gn)}
+.tb-r{display:flex;align-items:center;gap:10px}
+.icb{width:40px;height:40px;border-radius:50%;border:1px solid var(--bd);background:var(--sf);color:var(--tx);display:grid;place-items:center;cursor:pointer}
+.icb:hover{background:var(--sf2);color:var(--hl)}
+.icb .moon{display:none}[data-theme="dark"] .icb .moon{display:block}[data-theme="dark"] .icb .sun{display:none}
+.icb .mo-off{display:none}[data-motion="off"] .icb .mo-on{display:none}[data-motion="off"] .icb .mo-off{display:block}
+[data-motion="on"] #btnMotion{color:var(--pri);border-color:color-mix(in srgb,var(--pri) 35%,var(--bd))}
+.usr{display:flex;align-items:center;gap:10px;padding:4px 12px 4px 4px;border:1px solid var(--bd);border-radius:999px}
+.av{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--pri-soft);color:var(--pri);font-weight:600;font-size:.78rem;text-transform:uppercase}
+.usr b{display:block;color:var(--hl);font-size:.8rem;font-weight:500;line-height:1.2;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.usr span{display:block;color:var(--mu);font-size:.7rem;line-height:1.2}
+.b{display:inline-flex;align-items:center;gap:7px;height:40px;font-size:.84rem;font-weight:500;cursor:pointer;border-radius:10px;padding:0 15px;border:1px solid transparent;white-space:nowrap}
+.b-pri{background:var(--pri);color:#fff}.b-pri:hover{background:var(--pri2)}
+.b-out{background:var(--sf);color:var(--hl);border-color:var(--bd)}.b-out:hover{background:var(--sf2)}
+
+/* ── Stage ── */
+.stage{flex:1 1 auto;position:relative;background:transparent;min-height:0}
+.frame{position:absolute;inset:0;width:100%;height:100%;border:0}
+.welcome{display:flex;padding:28px;overflow-y:auto}
+/* Welcome: introduction (left) + log-in card (right); stacked on narrow screens with the card first */
+.wgrid{margin:auto;display:grid;grid-template-columns:minmax(0,1.55fr) minmax(300px,420px);gap:28px;align-items:center;width:min(1120px,100%)}
+.wgrid .wcard{width:100%}
+.intro .eyebrow{font-size:.74rem;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--pri)}
+.intro h1{margin:8px 0 10px;color:var(--hl);font-size:1.9rem;font-weight:600;letter-spacing:-.6px;line-height:1.2}
+.intro .lead{margin:0 0 22px;font-size:.95rem;line-height:1.6;max-width:680px}
+.intro h3{margin:0 0 10px;font-size:.72rem;font-weight:600;letter-spacing:.7px;text-transform:uppercase;color:var(--mu)}
+.parts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.part{background:var(--sf);border:1px solid var(--bd);border-radius:16px;padding:14px 16px}
+.part .n{display:grid;place-items:center;width:28px;height:28px;border-radius:8px;background:var(--pri-soft);color:var(--pri);font-weight:600;font-size:.82rem;margin-bottom:10px}
+.part b{display:block;color:var(--hl);font-size:.92rem;font-weight:600;margin-bottom:4px}
+.part p{margin:0;font-size:.8rem;line-height:1.5}
+@media(max-width:1100px){.wgrid{grid-template-columns:1fr}.wgrid .wcard{order:-1;justify-self:center}}
+@media(max-width:700px){.welcome{padding:16px}.parts{grid-template-columns:1fr}.intro h1{font-size:1.45rem}}
+.wcard{width:min(460px,94vw);background:var(--sf);border:1px solid var(--bd);border-radius:20px;padding:32px 30px;text-align:center;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.wcard .logo{width:52px;height:52px;border-radius:14px;font-size:1rem;margin:0 auto 16px}
+.wcard h2{margin:0 0 8px;color:var(--hl);font-size:1.3rem;font-weight:600;letter-spacing:-.3px}
+.wcard p{margin:0;color:var(--mu);font-size:.86rem;line-height:1.6}
+.wcard .demo{margin-top:14px;padding:10px 12px;border-radius:12px;background:var(--or-soft);color:var(--tx);font-size:.8rem;line-height:1.5}
+.wcard .b{margin-top:22px;height:46px;padding:0 26px;font-size:.95rem}
+
+/* ── Login / MFA ── */
+.mask{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:rgba(16,24,40,.45);backdrop-filter:blur(3px)}
+.card{width:min(420px,92vw);background:var(--sf);border:1px solid var(--bd);border-radius:20px;padding:28px 26px;box-shadow:var(--sh-lg)}
+.card h2{margin:0 0 4px;color:var(--hl);font-size:1.25rem;font-weight:600}
+.card .sub{margin:0 0 18px;color:var(--mu);font-size:.84rem;line-height:1.5}
+.card label{display:block;color:var(--hl);font-size:.78rem;font-weight:500;margin-bottom:14px}
+.card input,.card select{display:block;width:100%;margin-top:6px;height:44px;padding:0 12px;font-size:.9rem;background:var(--fld);color:var(--hl);border:1px solid var(--bd2);border-radius:10px;outline:none}
+.card select option{background:#fff;color:#101828}
+.card input:focus,.card select:focus{border-color:var(--pri);box-shadow:0 0 0 3px var(--pri-soft)}
+.err{background:rgba(229,72,77,.10);color:var(--rd);border-radius:10px;padding:9px 11px;font-size:.8rem;margin-bottom:12px}
+.row{display:flex;justify-content:flex-end;gap:10px;margin-top:6px}
+.note{color:var(--mu);font-size:.72rem;margin-top:16px;text-align:center;line-height:1.5}
+.demo-note{background:var(--or-soft);color:var(--tx);border-radius:10px;padding:10px 12px;font-size:.78rem;line-height:1.5;margin-bottom:14px}
+
+/* ── Motion mode (html[data-motion]; toggle in the top bar) ── */
+@keyframes mo-fade{from{opacity:0}to{opacity:1}}
+@keyframes mo-pop{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes mo-bar{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@keyframes mo-badge{0%{transform:scale(.5)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
+@keyframes mo-pulse{0%{box-shadow:0 0 0 0 rgba(255,255,255,.55)}70%,100%{box-shadow:0 0 0 7px rgba(255,255,255,0)}}
+:root[data-motion="on"] .frame:not([hidden]){animation:mo-fade .35s ease both}
+:root[data-motion="on"] .wcard,:root[data-motion="on"] .mask:not([hidden]) .card{animation:mo-pop .4s cubic-bezier(.2,.7,.2,1) both}
+:root[data-motion="on"] .nv,:root[data-motion="on"] .icb{transition:background .2s,color .2s,border-color .2s}
+:root[data-motion="on"] .nv.on::before{animation:mo-bar .3s cubic-bezier(.2,.7,.2,1)}
+:root[data-motion="on"] .nb.pop{animation:mo-badge .45s cubic-bezier(.2,.7,.2,1)}
+:root[data-motion="on"] .sb-card .md::before{animation:mo-pulse 2s ease-out infinite}
+:root[data-motion="off"] *,:root[data-motion="off"] *::before,:root[data-motion="off"] *::after{animation:none!important;transition:none!important}
+
+@media(max-width:900px){
+  body{flex-direction:column}
+  .sb{flex:0 0 auto;flex-direction:row;align-items:center;border-right:0;border-bottom:1px solid var(--bd);overflow-x:auto}
+  .sb-brand{height:56px;border-bottom:0;padding:0 12px}.sb-brand span{display:none}
+  .sb-nav{flex-direction:row;padding:6px}.sb-sec,.sb-gap,.sb-card{display:none}
+  .nv{height:38px;white-space:nowrap;font-size:.8rem}.nv.on::before{display:none}
+  .tb{flex:0 0 56px;padding:0 12px}.crumb,.usr span,.tag{display:none}.usr b{max-width:110px}
+}
+</style>
+<script>
+/*__EMBEDDED_PAGES__*/
+</script>
+</head>
+<body>
+<!--BUBBLES--><canvas id="bub" aria-hidden="true"></canvas><!--/BUBBLES-->
+
+<aside class="sb">
+  <div class="sb-brand"><div class="logo" title="ICD-11 Traditional Medicine Module 1">TM1</div><div><b>TM1 MDS</b><span>Western Pacific Region</span></div></div>
+  <nav class="sb-nav" id="navAuth" hidden>
+    <div class="sb-sec">Workspace</div>
+    <button id="tabDash" class="nv" onclick="showView('dash')"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Regional Dashboard</button>
+    <button id="tabEntry" class="nv" onclick="showView('entry')"><svg class="ic" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg>Country Submission</button>
+    <button id="tabRev" class="nv" onclick="showView('review')"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>Review &amp; Validation<span class="nb" id="badgeRev" hidden></span></button>
+  </nav>
+  <div class="sb-gap"></div>
+  <div class="sb-card">
+    <img src="/*__WPRO_LOGO__*/" alt="WHO Western Pacific Region">
+    <b>ICD-11 Traditional Medicine Module 1</b>
+    <span>Regional dashboard on minimum data sets — aggregate national data only.</span>
+    <div class="md" id="sbMode"></div>
+  </div>
+</aside>
+
+<div class="col">
+  <header class="tb">
+    <div class="tb-l"><span class="crumb" id="crumb">TM1 MDS · <b>Welcome</b></span><span id="modeTag" class="tag"></span></div>
+    <div class="tb-r">
+      <button class="icb" id="btnMotion" onclick="toggleMotion()" title="Animations on / off" aria-label="Turn animations on or off">
+        <svg class="ic mo-on" viewBox="0 0 24 24"><path d="M11 3.5 12.9 8.6 18 10.5l-5.1 1.9L11 17.5l-1.9-5.1L4 10.5l5.1-1.9z"/><path d="M18.5 15.5l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg>
+        <svg class="ic mo-off" viewBox="0 0 24 24"><path d="M11 3.5 12.9 8.6 18 10.5l-5.1 1.9L11 17.5l-1.9-5.1L4 10.5l5.1-1.9z"/><path d="M3 3l18 18"/></svg></button>
+      <button class="icb" onclick="toggleTheme()" title="Switch light / dark theme" aria-label="Switch light or dark theme">
+        <svg class="ic sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        <svg class="ic moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></button>
+      <div class="usr" id="whoLabel" hidden><div class="av" id="avatar"></div><div><b id="whoEmail"></b><span id="whoRole"></span></div></div>
+      <button id="btnLogout" class="b b-out" onclick="logout()" hidden><svg class="ic" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17 5 12l5-5M5 12h11"/></svg>Logout</button>
+    </div>
+  </header>
+
+  <main class="stage">
+    <iframe id="frmDash" class="frame" title="Regional Dashboard" hidden></iframe>
+    <iframe id="frmEntry" class="frame" title="Country Submission" hidden></iframe>
+    <iframe id="frmRev" class="frame" title="Review and Validation" hidden></iframe>
+    <div id="welcome" class="frame welcome">
+      <div class="wgrid">
+        <section class="intro" aria-labelledby="introTtl">
+          <div class="eyebrow">World Health Organization · Western Pacific Region</div>
+          <h1 id="introTtl">ICD-11 TM1 minimum data set dashboard</h1>
+          <p class="lead">ICD-11 now includes traditional medicine, but few countries collect routine data on it yet. This dashboard helps each Member State see where it stands and what it can already report, so that the Region can build <b>comparable traditional medicine data</b>, step by step.</p>
+          <h3>What you can see here</h3>
+          <div class="parts">
+            <div class="part"><span class="n">1</span><b>Readiness</b><p>How ready each country is to produce ICD-11 TM1 data. Five simple criteria place it in type A (data-ready), B (partially ready) or C (emerging).</p></div>
+            <div class="part"><span class="n">2</span><b>Data available now</b><p>Which items of the minimum data set (MDS), the short list of data all countries work towards, each country can report today, and where the gaps are.</p></div>
+            <div class="part"><span class="n">3</span><b>Indicators and progress</b><p>Six aggregate indicators, each with its source, coverage and coding method, and how countries move forward year by year.</p></div>
+          </div>
+        </section>
+        <div class="wcard">
+          <div class="logo">TM1</div>
+          <h2>Log in to view data</h2>
+          <p>Access is limited to authorized users with an account created by the WHO Regional Office.</p>
+          <div id="welcomeDemo" class="demo" hidden><b>Demo mode</b> — illustrative mock-up. Pick a demo account to see what each role can do.</div>
+          <button id="btnLogin" class="b b-pri" onclick="openLogin()"><svg class="ic" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Log In</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Login modal -->
+<div id="loginMask" class="mask" hidden>
+  <form class="card" onsubmit="return doLogin(event)">
+    <h2>Log In</h2>
+    <p class="sub">Sign in with the account created for you by the WHO Regional Office.</p>
+    <div id="liDemo" hidden>
+      <div class="demo-note"><b>Demo mode.</b> No real accounts or data. Choose a role to try the mock-up.</div>
+      <label>Demo account<select id="liDemoAcc"></select></label>
+    </div>
+    <div id="liLive">
+      <label>Email<input id="liUser" autocomplete="username" spellcheck="false"></label>
+      <label>Password<input id="liPass" type="password" autocomplete="current-password"></label>
+    </div>
+    <div id="liErr" class="err" hidden></div>
+    <div class="row">
+      <button type="button" class="b b-out" onclick="closeLogin()">Cancel</button>
+      <button type="submit" class="b b-pri">Sign in</button>
+    </div>
+    <div class="note">Only the admin can create accounts, after your Member State has nominated you.</div>
+  </form>
+</div>
+
+<!-- MFA modal: step 2 after the password (6-digit code from an authenticator app) -->
+<div id="mfaMask" class="mask" hidden>
+  <form class="card" onsubmit="return verifyMFA(event)">
+    <h2>Two-step verification</h2>
+    <p id="mfaSub" class="sub"></p>
+    <div id="mfaEnroll" hidden style="text-align:center;margin-bottom:14px">
+      <img id="mfaQr" alt="QR code for authenticator app" style="width:180px;height:180px;background:#fff;border-radius:12px;padding:6px;border:1px solid var(--bd)">
+      <div class="note" style="margin-top:8px">Can't scan? Enter this key manually:<br><code id="mfaSecret" style="word-break:break-all;user-select:all"></code></div>
+    </div>
+    <label>6-digit code<input id="mfaCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6"></label>
+    <div id="mfaErr" class="err" hidden></div>
+    <div class="row">
+      <button type="button" class="b b-out" onclick="cancelMFA()">Cancel</button>
+      <button type="submit" class="b b-pri">Verify</button>
+    </div>
+    <div class="note">Use Google Authenticator, Microsoft Authenticator or a similar app.</div>
+  </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+/* ─────────────────────────────────────────────────────────────────────
+   Same mechanism as K-PaF: Supabase Auth checks email + password, then a
+   6-digit MFA code (TOTP). The database opens data only to sessions that
+   passed MFA (aal2) — see private.mfa_ok() in the schema. The role and
+   country come from app_profiles, the same table the database uses for
+   row-level security. Embedded tools read the token from sessionStorage.
+   ───────────────────────────────────────────────────────────────────── */
+const CFG = window.TM1_CONFIG;
+const LIVE = !!(CFG.SUPABASE_URL && CFG.SUPABASE_ANON);
+const sb = (LIVE && window.supabase) ? supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON) : null;
+
+const SK_AUTH = 'tm1_auth', SK_TOKEN = 'tm1_token', SK_ROLE = 'tm1_role', SK_COUNTRY = 'tm1_country', SK_VIEW = 'tm1_view';
+const VIEWS = { dash: { frame: 'frmDash', tab: 'tabDash', page: 'dashboard', title: 'Regional Dashboard' },
+  entry: { frame: 'frmEntry', tab: 'tabEntry', page: 'submission', title: 'Country Submission' },
+  review: { frame: 'frmRev', tab: 'tabRev', page: 'review', title: 'Review & Validation' } };
+const loaded = { dash: false, entry: false, review: false };
+const ROLE_LABEL = { admin: 'Admin (WHO Regional Office)', who_reviewer: 'WHO reviewer', country_focal_point: 'Country focal point', viewer: 'Viewer' };
+/* Which tabs each role sees (System Summary §6) */
+const ROLE_VIEWS = { admin: ['dash', 'entry', 'review'], who_reviewer: ['dash', 'entry', 'review'], country_focal_point: ['dash', 'entry'], viewer: ['dash'] };
+/* Demo accounts — DEMO mode only */
+const DEMO_ACCOUNTS = [
+  { email: 'admin@demo.local', role: 'admin', country: '', label: 'Admin · WHO Regional Office' },
+  { email: 'reviewer@demo.local', role: 'who_reviewer', country: '', label: 'WHO reviewer' },
+  { email: 'focal.vnm@demo.local', role: 'country_focal_point', country: 'VNM', label: 'Focal point · Viet Nam (has a 2026 draft)' },
+  { email: 'focal.phl@demo.local', role: 'country_focal_point', country: 'PHL', label: 'Focal point · Philippines (2026 submitted)' },
+  { email: 'focal.fji@demo.local', role: 'country_focal_point', country: 'FJI', label: 'Focal point · Fiji (2026 returned by WHO)' },
+  { email: 'focal.ton@demo.local', role: 'country_focal_point', country: 'TON', label: 'Focal point · Tonga (2026 pre-filled by WHO)' },
+  { email: 'viewer@demo.local', role: 'viewer', country: '', label: 'Viewer · policymaker / collaborating centre' }
+];
+let demoPending = null;
+
+const $ = id => document.getElementById(id);
+const authed = () => !!sessionStorage.getItem(SK_AUTH);
+const role = () => sessionStorage.getItem(SK_ROLE) || 'viewer';
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+function toggleTheme() {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  try { localStorage.setItem('tm1_theme', next); } catch (e) {}   // the embedded tools follow through the storage event
+}
+/* Motion mode: entrance, count-up numbers and growing charts on/off (remembered in this browser). */
+function toggleMotion() {
+  const next = document.documentElement.getAttribute('data-motion') === 'on' ? 'off' : 'on';
+  document.documentElement.setAttribute('data-motion', next);
+  try { localStorage.setItem('tm1_motion', next); } catch (e) {}   // the embedded tools follow through the storage event
+  motionTitle();
+}
+function motionTitle() { const on = document.documentElement.getAttribute('data-motion') === 'on'; $('btnMotion').title = 'Animations ' + (on ? 'on' : 'off') + ' — click to turn them ' + (on ? 'off' : 'on'); }
+
+function openLogin() {
+  $('liErr').hidden = true; $('liUser').value = ''; $('liPass').value = '';
+  $('loginMask').hidden = false;
+  setTimeout(() => (LIVE ? $('liUser') : $('liDemoAcc')).focus(), 30);
+}
+function closeLogin() { $('loginMask').hidden = true; }
+
+/* Role + country from app_profiles. No profile → 'viewer' (same as private.my_role()). */
+async function loadProfile(user) {
+  try {
+    const { data, error } = await sb.from('app_profiles').select('role,country_iso3').eq('user_id', user.id).maybeSingle();
+    if (!error) return { role: (data && data.role) || 'viewer', country: (data && data.country_iso3) || '' };
+  } catch (e) {}
+  return { role: 'viewer', country: '' };
+}
+
+async function doLogin(e) {
+  e.preventDefault();
+  const er = $('liErr'); er.hidden = true;
+  if (!LIVE) {
+    demoPending = DEMO_ACCOUNTS.find(a => a.email === $('liDemoAcc').value) || DEMO_ACCOUNTS[0];
+    closeLogin(); openMFA(); return false;
+  }
+  const email = ($('liUser').value || '').trim(), pass = $('liPass').value || '';
+  const btn = e.target.querySelector('button[type="submit"]');
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+    if (error || !data || !data.session) { er.textContent = 'Incorrect email or password. Please try again.'; er.hidden = false; $('liPass').value = ''; $('liPass').focus(); }
+    else { await openMFA(); closeLogin(); }
+  } catch (err) { er.textContent = 'Could not connect to the sign-in server. Please check your network.'; er.hidden = false; }
+  finally { btn.disabled = false; btn.textContent = 'Sign in'; }
+  return false;
+}
+
+/* Logged in (MFA passed): store email/token/role/country, then open the dashboard */
+function finishLogin(email, token, prof) {
+  sessionStorage.setItem(SK_AUTH, email || '');
+  sessionStorage.setItem(SK_TOKEN, token || '');
+  sessionStorage.setItem(SK_ROLE, prof.role || 'viewer');
+  sessionStorage.setItem(SK_COUNTRY, prof.country || '');
+  applyAuthUI();
+  showView('dash');
+  preloadReview();
+}
+
+let mfaFactorId = null;
+async function openMFA() {
+  $('mfaErr').hidden = true; $('mfaCode').value = '';
+  if (!LIVE) {
+    $('mfaSub').textContent = 'Demo: in the live system you enter the 6-digit code from your authenticator app here. Type any 6 digits to continue.';
+    $('mfaEnroll').hidden = true;
+  } else {
+    const { data: f, error } = await sb.auth.mfa.listFactors();
+    if (error) throw error;
+    const done = (f.totp || []).find(x => x.status === 'verified');
+    if (done) {
+      mfaFactorId = done.id;
+      $('mfaSub').textContent = 'Enter the 6-digit code from your authenticator app.';
+      $('mfaEnroll').hidden = true;
+    } else {
+      for (const x of (f.all || []).filter(x => x.status !== 'verified')) await sb.auth.mfa.unenroll({ factorId: x.id });
+      const { data: en, error: e2 } = await sb.auth.mfa.enroll({ factorType: 'totp', friendlyName: 'TM1 MDS', issuer: 'TM1 MDS Dashboard' });
+      if (e2) throw e2;
+      mfaFactorId = en.id;
+      $('mfaQr').src = en.totp.qr_code;
+      $('mfaSecret').textContent = en.totp.secret;
+      $('mfaSub').textContent = 'First-time setup: scan this QR code with an authenticator app on your phone, then enter the 6-digit code it shows.';
+      $('mfaEnroll').hidden = false;
+    }
+  }
+  $('mfaMask').hidden = false;
+  setTimeout(() => $('mfaCode').focus(), 30);
+}
+
+async function verifyMFA(e) {
+  e.preventDefault();
+  const er = $('mfaErr'); er.hidden = true;
+  const code = ($('mfaCode').value || '').trim();
+  if (!LIVE) {
+    if (!/^\d{6}$/.test(code)) { er.textContent = 'Invalid or expired code. Please try again.'; er.hidden = false; return false; }
+    $('mfaMask').hidden = true;
+    finishLogin(demoPending.email, 'demo', { role: demoPending.role, country: demoPending.country });
+    return false;
+  }
+  const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true;
+  try {
+    const { error } = await sb.auth.mfa.challengeAndVerify({ factorId: mfaFactorId, code });
+    if (error) { er.textContent = 'Invalid or expired code. Please try again.'; er.hidden = false; $('mfaCode').value = ''; $('mfaCode').focus(); }
+    else {
+      const { data } = await sb.auth.getSession();      // the new session is aal2
+      $('mfaMask').hidden = true;
+      finishLogin(data.session.user.email, data.session.access_token, await loadProfile(data.session.user));
+    }
+  } catch (err) { er.textContent = 'Could not connect to the sign-in server. Please check your network.'; er.hidden = false; }
+  finally { btn.disabled = false; }
+  return false;
+}
+async function cancelMFA() { $('mfaMask').hidden = true; await logout(); }
+
+async function logout() {
+  if (sb) { try { await sb.auth.signOut(); } catch (e) {} }
+  [SK_AUTH, SK_TOKEN, SK_ROLE, SK_COUNTRY, 'tm1_open'].forEach(k => sessionStorage.removeItem(k));
+  sessionStorage.setItem(SK_VIEW, 'dash');
+  Object.entries(VIEWS).forEach(([v, o]) => { const f = $(o.frame); f.hidden = true; f.removeAttribute('srcdoc'); f.src = 'about:blank'; loaded[v] = false; });
+  $('badgeRev').hidden = true;
+  applyAuthUI();
+}
+
+function applyAuthUI() {
+  const on = authed();
+  $('navAuth').hidden = !on;
+  $('whoLabel').hidden = !on;
+  $('btnLogout').hidden = !on;
+  $('welcome').hidden = on;
+  const allowed = ROLE_VIEWS[role()] || ['dash'];
+  Object.entries(VIEWS).forEach(([v, o]) => { $(o.tab).hidden = !allowed.includes(v); });
+  if (on) {
+    const email = sessionStorage.getItem(SK_AUTH) || '', c = sessionStorage.getItem(SK_COUNTRY);
+    $('avatar').textContent = (email.replace(/[^a-z]/gi, '').slice(0, 2) || 'U');
+    $('whoEmail').textContent = email;
+    $('whoRole').textContent = (ROLE_LABEL[role()] || role()) + (c ? ' · ' + c : '');
+  } else {
+    Object.values(VIEWS).forEach(o => { $(o.frame).hidden = true; });
+    $('crumb').innerHTML = 'TM1 MDS · <b>Welcome</b>';
+  }
+}
+
+function load(v) { const o = VIEWS[v]; if (!loaded[v]) { $(o.frame).srcdoc = window.TM1_EMBEDDED_PAGES[o.page]; loaded[v] = true; return true; } return false; }
+/* WHO roles: load Review in the background so the sidebar can show how many reports await review. */
+function preloadReview() { if (['admin', 'who_reviewer'].includes(role())) setTimeout(() => { if (authed()) load('review'); }, 1200); }
+
+function showView(v) {
+  if (!authed()) return;
+  const allowed = ROLE_VIEWS[role()] || ['dash'];
+  if (!allowed.includes(v)) v = 'dash';
+  $('welcome').hidden = true;
+  const o = VIEWS[v];
+  if (!load(v)) { try { $(o.frame).contentWindow.postMessage({ type: 'tm1-show' }, '*'); } catch (e) {} }
+  Object.entries(VIEWS).forEach(([k, x]) => { $(x.frame).hidden = (k !== v); $(x.tab).classList.toggle('on', k === v); });
+  $('crumb').innerHTML = 'TM1 MDS · <b>' + esc(o.title) + '</b>';
+  sessionStorage.setItem(SK_VIEW, v);
+}
+window.TM1_SHELL = { showView };
+
+addEventListener('message', e => {   // badge from the Review tool: reports awaiting WHO review
+  if (e.data && e.data.type === 'tm1-badge' && e.data.view === 'review') {
+    const n = +e.data.n || 0, b = $('badgeRev'), changed = b.hidden || +b.textContent !== n;
+    b.textContent = n; b.hidden = !n;
+    if (changed && n) { b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); }
+  }
+});
+addEventListener('storage', e => {
+  if (e.key === 'tm1_theme') document.documentElement.setAttribute('data-theme', e.newValue === 'dark' ? 'dark' : 'light');
+  if (e.key === 'tm1_motion') { document.documentElement.setAttribute('data-motion', e.newValue === 'off' ? 'off' : 'on'); motionTitle(); }
+});
+addEventListener('keydown', e => { if (e.key === 'Escape') closeLogin(); });
+
+(async function boot() {
+  motionTitle();
+  $('modeTag').className = 'tag ' + (LIVE ? 'live' : '');
+  $('modeTag').textContent = LIVE ? (CFG.SAMPLE_DATA ? 'Live · sample data' : 'Live · Supabase') : 'Demo · illustrative data';
+  $('sbMode').className = 'md' + (LIVE ? ' live' : '');
+  $('sbMode').textContent = LIVE ? (CFG.SAMPLE_DATA ? 'Live · sample data' : 'Live · Supabase') : 'Demo · mock-up';
+  $('welcomeDemo').hidden = LIVE;
+  $('liDemo').hidden = LIVE; $('liLive').hidden = !LIVE;
+  $('liDemoAcc').innerHTML = DEMO_ACCOUNTS.map(a => '<option value="' + a.email + '">' + esc(a.label) + '</option>').join('');
+  if (LIVE && !sb) { $('modeTag').textContent = 'Supabase library did not load — check the internet connection'; }
+  if (sb) {
+    /* Keep the token that the embedded tools use fresh (Supabase refreshes it about every hour). */
+    sb.auth.onAuthStateChange((ev, session) => { if (session && authed()) sessionStorage.setItem(SK_TOKEN, session.access_token); });
+    try {
+      const { data } = await sb.auth.getSession();
+      if (data && data.session) {
+        const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+        if (aal && aal.currentLevel === 'aal2') {
+          const prof = await loadProfile(data.session.user);
+          sessionStorage.setItem(SK_AUTH, data.session.user.email || '');
+          sessionStorage.setItem(SK_TOKEN, data.session.access_token);
+          sessionStorage.setItem(SK_ROLE, prof.role); sessionStorage.setItem(SK_COUNTRY, prof.country);
+        } else await openMFA();
+      }
+    } catch (e) {}
+  }
+  if (!LIVE && sessionStorage.getItem(SK_TOKEN) && sessionStorage.getItem(SK_TOKEN) !== 'demo') logout();
+  applyAuthUI();
+  if (authed()) { showView(sessionStorage.getItem(SK_VIEW) || 'dash'); preloadReview(); }
+})();
+</script>
+<!--BUBBLES--><script>
+/* ── Animated bubble background: soft glowing bubbles rising slowly, plus a few large light glows
+   (the glow idea comes from resend.com). Colours: WHO blues and cyan. Follows the light/dark theme,
+   stays still when animations are off, pauses while the browser tab is hidden. ── */
+(function () {
+  const cv = document.getElementById('bub'), ctx = cv && cv.getContext('2d');
+  if (!ctx) return;
+  const root = document.documentElement;
+  const PAL = ['31,111,235', '0,154,222', '76,141,255', '60,200,220', '120,170,255'];
+  let W = 0, H = 0, B = [], G = [], raf = 0, last = 0;
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  function bubble(anywhere) {
+    const r = Math.random() < .25 ? rnd(70, 130) : rnd(14, 60);
+    return { r, x: rnd(0, W), y: anywhere ? rnd(0, H) : H + r + rnd(0, 120), vy: rnd(8, 22) * Math.pow(60 / r, .35),
+      amp: rnd(10, 40), ph: rnd(0, 6.28), fq: rnd(.15, .4), c: PAL[(Math.random() * PAL.length) | 0], a: rnd(.55, 1) };
+  }
+  function size() {
+    const dpr = Math.min(2, window.devicePixelRatio || 1); W = innerWidth; H = innerHeight;
+    cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + 'px'; cv.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    B = Array.from({ length: Math.max(12, Math.min(26, Math.round(W * H / 55000))) }, () => bubble(true));
+    G = [{ x: .8, y: .1, r: .55, c: PAL[0] }, { x: .12, y: .88, r: .5, c: PAL[3] }, { x: .5, y: .45, r: .38, c: PAL[2] }].map(g => Object.assign(g, { ph: rnd(0, 6.28) }));
+  }
+  function draw(t) {
+    const dark = root.getAttribute('data-theme') === 'dark', k = dark ? 1 : .55, s = t / 1000;
+    ctx.clearRect(0, 0, W, H);
+    G.forEach(g => {
+      const x = (g.x + .04 * Math.sin(s * .07 + g.ph)) * W, y = (g.y + .04 * Math.cos(s * .06 + g.ph)) * H, R = g.r * Math.max(W, H);
+      const gr = ctx.createRadialGradient(x, y, 0, x, y, R);
+      gr.addColorStop(0, 'rgba(' + g.c + ',' + (dark ? .22 : .12) + ')'); gr.addColorStop(1, 'rgba(' + g.c + ',0)');
+      ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H);
+    });
+    B.forEach(b => {
+      const x = b.x + Math.sin(s * b.fq + b.ph) * b.amp, y = b.y, r = b.r, a = b.a * k;
+      const gr = ctx.createRadialGradient(x - r * .35, y - r * .4, r * .05, x, y, r);
+      gr.addColorStop(0, 'rgba(255,255,255,' + .3 * a + ')');
+      gr.addColorStop(.35, 'rgba(' + b.c + ',' + .16 * a + ')');
+      gr.addColorStop(.85, 'rgba(' + b.c + ',' + .1 * a + ')');
+      gr.addColorStop(1, 'rgba(' + b.c + ',' + .32 * a + ')');
+      ctx.beginPath(); ctx.arc(x, y, r, 0, 6.2832); ctx.fillStyle = gr; ctx.fill();
+      ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(' + b.c + ',' + .35 * a + ')'; ctx.stroke();
+    });
+  }
+  function step(t) {
+    const dt = Math.min(.05, (t - (last || t)) / 1000); last = t;
+    B.forEach((b, i) => { b.y -= b.vy * dt; if (b.y < -b.r - 10) B[i] = bubble(false); });
+    draw(t); raf = requestAnimationFrame(step);
+  }
+  function run() {
+    cancelAnimationFrame(raf); last = 0;
+    if (root.getAttribute('data-motion') === 'on' && !document.hidden) raf = requestAnimationFrame(step); else draw(performance.now());
+  }
+  size(); run();
+  addEventListener('resize', () => { size(); run(); });
+  document.addEventListener('visibilitychange', run);
+  new MutationObserver(run).observe(root, { attributes: true, attributeFilter: ['data-theme', 'data-motion'] });
+})();
+</script><!--/BUBBLES-->
+</body>
+</html>

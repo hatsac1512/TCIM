@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TM1 MDS · Country Submission</title>
+<script>(function(){var d=document.documentElement;try{var t=localStorage.getItem('tm1_theme');d.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){d.setAttribute('data-theme','light');}var m=null;try{m=localStorage.getItem('tm1_motion');}catch(e){}if(m!=='on'&&m!=='off')m=(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)?'off':'on';d.setAttribute('data-motion',m);if(window.parent!==window)d.classList.add('emb');})();</script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/*__COMMON_CSS__*/
+.main{max-width:1160px;padding-bottom:120px}
+.sec{margin-bottom:16px}
+.sec .desc{font-size:.82rem;color:var(--mu);margin:-6px 0 14px;max-width:880px}
+.q{display:grid;grid-template-columns:1fr auto;gap:8px 16px;align-items:center;padding:12px 0;border-top:1px dashed var(--bd)}
+.q:first-of-type{border-top:0}
+.q .ql{color:var(--hl);font-weight:500;font-size:.88rem}
+.q .ql .n{color:var(--pri);margin-right:6px;font-weight:600}
+.q .full{grid-column:1 / -1}
+.seg{display:inline-flex;gap:2px;padding:3px;border:1px solid var(--bd);border-radius:10px;background:var(--sf2);flex-wrap:wrap}
+.seg label{cursor:pointer;font-size:.78rem;font-weight:500;color:var(--mu);padding:6px 12px;border-radius:7px;user-select:none}
+.seg label:hover{color:var(--hl)}
+.seg input{display:none}
+.seg label:has(input:checked){background:var(--sf);color:var(--pri);box-shadow:0 1px 2px rgba(16,24,40,.10)}
+.seg label.o-full:has(input:checked),.seg label.o-available:has(input:checked),.seg label.o-yes:has(input:checked){background:var(--gn-soft);color:var(--gn);box-shadow:none}
+.seg label.o-partial:has(input:checked),.seg label.o-partly:has(input:checked){background:var(--pri-soft);color:var(--pri);box-shadow:none}
+.seg label.o-no:has(input:checked),.seg label.o-not_available:has(input:checked),.seg label.o-nr:has(input:checked){background:var(--rd-soft);color:var(--rd);box-shadow:none}
+input.w{width:100%}
+.req{color:var(--rd);margin-left:2px}
+.miss{outline:2px solid var(--rd)!important;outline-offset:2px;border-radius:10px}
+.tbox{display:flex;gap:12px;align-items:center;margin-top:16px;padding:12px 14px;border-radius:12px;background:var(--sf2);border:1px dashed var(--bd2);font-size:.82rem}
+.av{width:100%;border-collapse:collapse}
+.av td{padding:9px 6px;border-bottom:1px dashed var(--bd);vertical-align:middle}
+.av tr:last-child td{border-bottom:0}
+.av td.tier{font-size:.66rem;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--mu);white-space:nowrap}
+.indc{border:1px solid var(--bd);border-radius:14px;padding:14px 16px;margin-bottom:12px;background:var(--sf2)}
+.indc h4{display:flex;gap:10px;align-items:center;flex-wrap:wrap;color:var(--hl);font-size:.92rem;font-weight:600;margin-bottom:4px}
+.indc h4 .n{color:var(--pri)}
+.vals{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 12px;margin:12px 0}
+.vals label,.mrow label{display:block;font-size:.72rem;font-weight:500;color:var(--mu)}
+.vals input,.mrow select,.mrow input{width:100%;margin-top:4px}
+.mrow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 12px;padding-top:12px;border-top:1px dashed var(--bd2)}
+.oth{display:block;width:100%;margin-top:6px}
+.srcw{display:inline-flex;flex-direction:column}   /* the "Other" box takes the width of its select */
+.sum{font-size:.72rem;color:var(--mu);grid-column:1 / -1}
+.sum.bad{color:var(--rd)}
+.actbar{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;gap:10px;align-items:center;justify-content:flex-end;flex-wrap:wrap;padding:12px 28px;
+  background:var(--sf);border-top:1px solid var(--bd);box-shadow:0 -6px 20px rgba(16,24,40,.06)}
+.msg{font-size:.82rem;font-weight:500;margin-right:auto;max-width:680px}
+.msg.ok{color:var(--gn)}.msg.bad{color:var(--rd)}
+.bnr{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:12px;margin-bottom:14px;font-size:.84rem;border:1px solid var(--bd);background:var(--sf);color:var(--tx)}
+.bnr .ic{margin-top:2px;width:18px;height:18px}
+.bnr b{color:var(--hl)}
+.bnr.pu{background:var(--pu-soft);border-color:transparent}.bnr.pu .ic{color:var(--pu)}
+.bnr.rd{background:var(--rd-soft);border-color:transparent}.bnr.rd .ic{color:var(--rd)}
+.bnr.gn{background:var(--gn-soft);border-color:transparent}.bnr.gn .ic{color:var(--gn)}
+.bnr.yl{background:var(--yl-soft);border-color:transparent}.bnr.yl .ic{color:var(--yl)}
+.misslist{margin:6px 0 0 18px;font-size:.8rem;font-weight:400}
+fieldset{border:0;min-width:0}
+fieldset:disabled .seg label{cursor:default;opacity:.8}
+.code{display:inline-flex;align-items:center;height:28px;padding:0 10px;border-radius:8px;background:var(--sf2);border:1px solid var(--bd);font-size:.78rem;font-weight:500;color:var(--hl)}
+@media(max-width:760px){.q{grid-template-columns:1fr}.vals,.mrow{grid-template-columns:repeat(2,minmax(0,1fr))}.actbar{padding:8px 10px}}
+</style>
+</head>
+<body>
+<div class="main">
+  <div class="page-h">
+    <div><h1>Country Submission<span class="live" id="liveChip"><span class="dot"></span><span id="liveTxt">—</span></span></h1>
+      <p>One submission = <b>one Member State × one reporting year</b>, in three parts. <b>Save draft</b> at any time; <b>Submit to WHO</b> when every required field (<span class="req">*</span>) is complete. Aggregate national figures only — never names or personal details, also not in notes. Clear the figures inside your Ministry before you submit.</p></div>
+    <div class="acts">
+      <div class="ctl">
+        <div class="it"><label for="sMS">Member State</label><select id="sMS" onchange="openSel()"></select></div>
+        <div class="it"><label for="sYear">Reporting year</label><select id="sYear" onchange="openSel()"></select></div>
+      </div>
+      <span id="sCode" class="code">—</span><span id="sStatus"></span>
+    </div>
+  </div>
+  <div id="demoRib" class="demo-rib" hidden><span data-ic="alert"></span><span><b>MOCK-UP — illustrative data only.</b> Entries are saved in this browser only. Do not enter real Member State data in the demo.</span></div>
+  <div id="noAccess" class="bnr rd" hidden>Your role (viewer) cannot submit data.</div>
+  <div id="bnr"></div>
+
+  <form id="f" onsubmit="return false" oninput="dirty=true;updType()" onchange="dirty=true;updType()">
+  <fieldset id="fs">
+    <div class="cc sec">
+      <h3><span class="i">1</span>Part 1 · Data readiness<span class="sub">5 criteria</span></h3>
+      <p class="desc">Answer each criterion for the reporting year: <b>No</b>, <b>Partially</b> or <b>Fully</b>, and give a short evidence note or source (law, regulation, survey, report). Criteria 1–3 may already be pre-filled by WHO from global surveys — check them.</p>
+      <div id="p1"></div>
+      <div class="tbox"><span>Proposed readiness type:</span><span id="tBadge"></span><span id="tTxt" class="muted"></span></div>
+    </div>
+    <div class="cc sec">
+      <h3><span class="i">2</span>Part 2 · MDS availability<span class="sub">12 items</span></h3>
+      <p class="desc">For each MDS item, can your country report it <b>now</b> at national level? If Available or Partly, name the main data source. Gaps are information, not failure — choose <b>Not available</b> rather than guessing.</p>
+      <table class="av" id="p2"></table>
+    </div>
+    <div class="cc sec">
+      <h3><span class="i">3</span>Part 3 · Aggregate indicators<span class="sub">6 indicators</span></h3>
+      <p class="desc">For each indicator choose <b>Reported</b> or <b>Not reported</b>. A reported value must travel with its <b>source, coverage and coding method</b> — without them, a national claims database and a few sentinel clinics would look comparable when they are not. Category lists are a draft, to be agreed with Member States.</p>
+      <div id="p3"></div>
+    </div>
+  </fieldset>
+  </form>
+
+  <div class="cc"><h3><span class="i" data-ic="history"></span>History of this submission<span class="sub">audit log</span></h3><div class="tw" style="max-height:320px"><table id="hist"></table></div></div>
+</div>
+
+<div class="actbar">
+  <span id="msg" class="msg"></span>
+  <button class="btn btn-out" id="bPrint" onclick="if(CUR)TM1.printProfile(Object.assign({},CUR,readForm()))" hidden><span data-ic="print"></span>Print</button>
+  <button class="btn btn-out" id="bSave" onclick="save()"><span data-ic="save"></span><span id="bSaveTxt">Save draft</span></button>
+  <button class="btn" id="bSubmit" onclick="submitWHO()"><span data-ic="send"></span>Submit to WHO</button>
+</div>
+
+<script>/*__COMMON_JS__*/</script>
+<script>
+const { $, esc, sess, can, CNAME, COUNTRIES, CRITERIA, ANSWERS, MDS_ITEMS, TIERS, AVAIL, INDICATORS, SOURCES, COVERAGE, METHODS, FAC_CATS, PROV_CATS, AGE_CATS, STATUS, TYPES, YEARS } = TM1;
+let WS = [], CUR = null, dirty = false;
+const opts = (o, ph) => '<option value="">' + (ph || '— Select —') + '</option>' + Object.entries(o).map(([k, l]) => '<option value="' + k + '">' + esc(l) + '</option>').join('');
+const oth = (name, what) => '<input class="oth" type="text" size="1" name="' + name + '" id="' + name + '" maxlength="160" placeholder="Other ' + what + ' — please specify" hidden>';   // shown when "Other" is chosen
+const radios = (name, o, cls) => '<div class="seg" id="g_' + name + '">' + Object.entries(o).map(([k, l]) => '<label class="o-' + (cls ? cls[k] || k : k) + '"><input type="radio" name="' + name + '" value="' + k + '"><span>' + esc(l) + '</span></label>').join('') + '</div>';
+
+/* ── Build the form once ── */
+function buildForm() {
+  $('p1').innerHTML = CRITERIA.map((c, i) => '<div class="q"><div class="ql"><span class="n">' + (i + 1) + '.</span>' + esc(c.label) + '<span class="req">*</span></div>' +
+    radios('r_' + c.k, ANSWERS) + '<input class="w full" type="text" name="rn_' + c.k + '" maxlength="400" placeholder="Evidence note or source (optional) — no personal details"></div>').join('');
+  let t = '';
+  MDS_ITEMS.forEach((it, i) => {
+    t += '<tr><td class="tier">' + TIERS[it.tier] + '</td><td style="color:var(--hl);font-weight:700">' + esc(it.label) + '<span class="req">*</span></td><td>' + radios('a_' + it.k, AVAIL) + '</td>' +
+      '<td><div class="srcw"><select name="as_' + it.k + '" id="as_' + it.k + '">' + opts(SOURCES, 'Data source…') + '</select>' + oth('aso_' + it.k, 'data source') + '</div></td></tr>';
+  });
+  $('p2').innerHTML = t;
+  $('p3').innerHTML = INDICATORS.map((ind, i) => {
+    let v = '';
+    const pin = (name, label) => '<div><label>' + esc(label) + ' (%)</label><input type="text" maxlength="80" placeholder="% or short text" name="' + name + '"></div>';   // text allowed: not everyone knows the exact share
+    const hint = '<div class="sum">Give the percentage where known; otherwise a short description (e.g. “about half”, “most visits”).</div>';
+    if (ind.kind === 'num') v = '<div class="vals"><div><label>Value (' + esc(ind.unit) + ')<span class="req">*</span></label><input type="number" min="0" step="0.01" name="iv_' + ind.k + '"></div></div>';
+    if (ind.kind === 'dist2') v = '<div class="vals">' + hint + Object.entries(FAC_CATS).map(([k, l]) => pin('ivf_' + k, 'Facility · ' + l)).join('') + '<div class="sum" id="sum_fac"></div>' +
+      Object.entries(PROV_CATS).map(([k, l]) => pin('ivp_' + k, 'Provider · ' + l)).join('') + '<div class="sum" id="sum_prov"></div></div>';
+    if (ind.kind === 'agesex') v = '<div class="vals">' + hint + pin('iv_female', 'Female') + '<div></div><div></div><div></div>' + Object.entries(AGE_CATS).map(([k, l]) => pin('iva_' + k, 'Age ' + l)).join('') + '<div class="sum" id="sum_age"></div></div>';
+    if (ind.kind === 'top10') v = '<div class="vals" style="grid-template-columns:1fr 1fr"><div><label>Top 10 TM1 disorders (one per line: code + title)</label><textarea name="ivt_disorders" rows="5"></textarea></div><div><label>Top 10 TM1 patterns (one per line: code + title)</label><textarea name="ivt_patterns" rows="5"></textarea></div></div>';
+    return '<div class="indc" id="card_' + ind.k + '"><h4><span class="n">' + (i + 1) + '.</span>' + esc(ind.label) + '<span class="req">*</span>' + radios('ir_' + ind.k, { yes: 'Reported', nr: 'Not reported' }) + '</h4>' +
+      '<div class="ib" id="ib_' + ind.k + '" hidden><div id="iv_' + ind.k + '_w">' + v + '</div>' +
+      '<div class="mrow"><div><label>Source<span class="req">*</span></label><select name="is_' + ind.k + '" id="is_' + ind.k + '">' + opts(SOURCES) + '</select>' + oth('iso_' + ind.k, 'source') + '</div>' +
+      '<div><label>Coverage<span class="req">*</span></label><select name="ic_' + ind.k + '" id="ic_' + ind.k + '">' + opts(COVERAGE) + '</select></div>' +
+      '<div><label>Coverage detail</label><input type="text" name="icn_' + ind.k + '" maxlength="160" placeholder="e.g. 12 sentinel facilities"></div>' +
+      '<div><label>Coding method<span class="req">*</span></label><select name="im_' + ind.k + '" id="im_' + ind.k + '">' + opts(METHODS) + '</select>' + oth('imo_' + ind.k, 'coding method') + '</div></div></div></div>';
+  }).join('');
+  INDICATORS.forEach(ind => document.querySelectorAll('input[name="ir_' + ind.k + '"]').forEach(r => r.addEventListener('change', () => { $('ib_' + ind.k).hidden = fv('ir_' + ind.k) !== 'yes'; })));
+}
+const F = () => $('f').elements;
+const fv = n => { const e = F()[n]; if (!e) return ''; if (e instanceof RadioNodeList) return e.value; return (e.value || '').trim(); };
+const setv = (n, v) => { const e = F()[n]; if (!e) return; if (e instanceof RadioNodeList) { e.forEach(r => { r.checked = r.value === v; }); } else e.value = v == null ? '' : v; };
+const nOrNull = n => { const v = fv(n); return v === '' ? null : +v; };
+const pctOf = v => { const t = String(v).replace(/%$/, '').trim(); return t !== '' && !isNaN(+t) ? +t : null; };   // "45" or "45%" → 45; text → null
+const pctOrText = n => { const v = fv(n); return v === '' ? null : pctOf(v) ?? v; };
+
+/* ── Form ⇄ data ── */
+function readForm() {
+  const readiness = {}, availability = {}, indicators = {};
+  CRITERIA.forEach(c => { readiness[c.k] = { v: fv('r_' + c.k) || null, note: fv('rn_' + c.k) }; });
+  const other = (x, key, code, box) => { if (code === 'other' && fv(box)) x[key] = fv(box); return x; };   // text for "Other", kept only when Other is chosen
+  MDS_ITEMS.forEach(it => { const v = fv('a_' + it.k) || null, src = v && v !== 'not_available' ? fv('as_' + it.k) : ''; availability[it.k] = other({ v, src }, 'srcOther', src, 'aso_' + it.k); });
+  INDICATORS.forEach(ind => {
+    const r = fv('ir_' + ind.k);
+    if (!r) { indicators[ind.k] = { reported: null }; return; }
+    if (r === 'nr') { indicators[ind.k] = { reported: false }; return; }
+    const x = { reported: true, src: fv('is_' + ind.k), cov: fv('ic_' + ind.k), covNote: fv('icn_' + ind.k), method: fv('im_' + ind.k) };
+    other(x, 'srcOther', x.src, 'iso_' + ind.k); other(x, 'methodOther', x.method, 'imo_' + ind.k);
+    if (ind.kind === 'num') x.value = nOrNull('iv_' + ind.k);
+    if (ind.kind === 'dist2') x.data = { fac: Object.fromEntries(Object.keys(FAC_CATS).map(k => [k, pctOrText('ivf_' + k)])), prov: Object.fromEntries(Object.keys(PROV_CATS).map(k => [k, pctOrText('ivp_' + k)])) };
+    if (ind.kind === 'agesex') x.data = { female: pctOrText('iv_female'), age: Object.fromEntries(Object.keys(AGE_CATS).map(k => [k, pctOrText('iva_' + k)])) };
+    if (ind.kind === 'top10') x.data = { disorders: fv('ivt_disorders'), patterns: fv('ivt_patterns') };
+    indicators[ind.k] = x;
+  });
+  return { readiness, availability, indicators };
+}
+function fillForm(s) {
+  $('f').reset();
+  s = s || {};
+  CRITERIA.forEach(c => { const r = (s.readiness || {})[c.k] || {}; setv('r_' + c.k, r.v || ''); setv('rn_' + c.k, r.note || ''); });
+  MDS_ITEMS.forEach(it => { const a = (s.availability || {})[it.k] || {}; setv('a_' + it.k, a.v || ''); setv('as_' + it.k, a.src || ''); setv('aso_' + it.k, a.srcOther); });
+  INDICATORS.forEach(ind => {
+    const x = (s.indicators || {})[ind.k] || {}, d = x.data || {};
+    setv('ir_' + ind.k, x.reported === true ? 'yes' : x.reported === false ? 'nr' : '');
+    $('ib_' + ind.k).hidden = x.reported !== true;
+    setv('is_' + ind.k, x.src); setv('ic_' + ind.k, x.cov); setv('icn_' + ind.k, x.covNote); setv('im_' + ind.k, x.method);
+    setv('iso_' + ind.k, x.srcOther); setv('imo_' + ind.k, x.methodOther);
+    if (ind.kind === 'num') setv('iv_' + ind.k, x.value);
+    if (ind.kind === 'dist2') { Object.keys(FAC_CATS).forEach(k => setv('ivf_' + k, (d.fac || {})[k])); Object.keys(PROV_CATS).forEach(k => setv('ivp_' + k, (d.prov || {})[k])); }
+    if (ind.kind === 'agesex') { setv('iv_female', d.female); Object.keys(AGE_CATS).forEach(k => setv('iva_' + k, (d.age || {})[k])); }
+    if (ind.kind === 'top10') { setv('ivt_disorders', d.disorders); setv('ivt_patterns', d.patterns); }
+  });
+  updType(); dirty = false;
+}
+function updType() {
+  const p = readForm(), t = TM1.readinessType(p.readiness);
+  $('tBadge').innerHTML = TM1.typeBadge(t);
+  $('tTxt').textContent = t ? TYPES[t] + ' — proposed by the system; WHO confirms it with the Member State. Rule (draft): A = all five Fully; C = criterion 5 No and criterion 1 not Fully; B = all other answers.' : 'Answer all five criteria to see the proposed type.';
+  MDS_ITEMS.forEach(it => { const v = fv('a_' + it.k); $('as_' + it.k).disabled = $('fs').disabled || v === 'not_available'; $('aso_' + it.k).hidden = v === 'not_available' || fv('as_' + it.k) !== 'other'; });
+  INDICATORS.forEach(ind => [['is_', 'iso_'], ['im_', 'imo_']].forEach(([a, b]) => { $(b + ind.k).hidden = fv(a + ind.k) !== 'other'; }));
+  const sums = [['sum_fac', 'ivf_', FAC_CATS], ['sum_prov', 'ivp_', PROV_CATS], ['sum_age', 'iva_', AGE_CATS]];
+  sums.forEach(([id, pre, cats]) => { const el = $(id); if (!el) return; const vals = Object.keys(cats).map(k => fv(pre + k)).filter(v => v !== '').map(pctOf);
+    const txt = vals.includes(null), s = vals.reduce((a, b) => a + (b || 0), 0), bad = vals.length && !txt && Math.abs(s - 100) > 0.5;   // the sum is checked only when every entry is a number
+    el.textContent = !vals.length ? '' : txt ? 'Some entries are text — sum not checked' : 'Sum: ' + Math.round(s * 10) / 10 + '%' + (bad ? ' — should add up to 100%' : ' ✓'); el.className = 'sum' + (bad ? ' bad' : ''); });
+}
+
+/* ── Load / open a submission ── */
+const allowedCountries = () => sess.role === 'country_focal_point' ? COUNTRIES.filter(([k]) => k === sess.country) : (TM1.isWHO() ? COUNTRIES : []);
+async function load(keepSel) {
+  TM1.setLive('syn');
+  try { WS = await TM1.api.workspace(); TM1.setLive('ok'); }
+  catch (e) { TM1.setLive('err', e.message); TM1.toast(e.message, true); WS = []; }
+  let open = null; try { open = JSON.parse(sessionStorage.getItem(TM1.SK.open) || 'null'); sessionStorage.removeItem(TM1.SK.open); } catch (e) {}
+  if (open && allowedCountries().some(([k]) => k === open.iso3)) { $('sMS').value = open.iso3; $('sYear').value = open.year; }
+  else if (!keepSel && !$('sMS').dataset.init) {
+    $('sMS').dataset.init = '1';
+    if (sess.role === 'country_focal_point') {
+      const mine = WS.filter(s => s.iso3 === sess.country).sort((a, b) => b.year - a.year)[0];
+      $('sYear').value = mine ? mine.year : new Date().getFullYear();
+    }
+  }
+  openSel(true);
+  TM1.entered();
+}
+function openSel(force) {
+  if (!force && dirty && !confirm('You have unsaved changes. Discard them?')) { if (CUR) { $('sMS').value = CUR.iso3; $('sYear').value = CUR.year; } return; }
+  const iso3 = $('sMS').value, year = +$('sYear').value;
+  CUR = WS.find(s => s.iso3 === iso3 && s.year === year) || { id: null, code: TM1.codeOf(iso3, year), iso3, year, status: null };
+  fillForm(CUR);
+  $('msg').textContent = ''; $('msg').className = 'msg';
+  document.querySelectorAll('.miss').forEach(e => e.classList.remove('miss'));
+  applyState(); hist();
+}
+function applyState() {
+  const s = CUR, st = s.status, editable = can.edit(s.iso3, st);
+  $('sCode').textContent = s.code;
+  $('sStatus').innerHTML = TM1.stBadge(st);
+  $('fs').disabled = !editable; updType();
+  const isRev = sess.role === 'who_reviewer';
+  $('bSave').hidden = !editable;
+  $('bSaveTxt').textContent = isRev ? 'Save pre-fill (WHO)' : 'Save draft';
+  $('bSubmit').hidden = !(editable && (sess.role === 'admin' || sess.role === 'country_focal_point'));
+  $('bPrint').hidden = !s.id;
+  const b = [];
+  if (st === 'prefilled') b.push('<div class="bnr pu">' + TM1.icon('file') + '<span><b>Pre-filled by WHO from public sources</b> (' + esc(TM1.fmtDT(s.updatedAt)) + '). ' + (sess.role === 'country_focal_point' ? 'Check and correct <b>every</b> answer before you submit — your first save turns it into your draft.' : 'The focal point must confirm it.') + '</span></div>');
+  if (st === 'returned') b.push('<div class="bnr rd">' + TM1.icon('undo') + '<span><b>Returned for revision by WHO.</b> ' + (s.comment ? 'WHO comment: “' + esc(s.comment) + '”' : '') + ' Correct the submission, then click Submit to WHO again.</span></div>');
+  else if (s.comment && st !== 'validated') b.push('<div class="bnr">' + TM1.icon('info') + '<span>Last WHO comment: “' + esc(s.comment) + '”</span></div>');
+  if (st === 'submitted') b.push('<div class="bnr yl">' + TM1.icon('clock') + '<span><b>Submitted to WHO</b> on ' + esc(TM1.fmtDT(s.submittedAt)) + ' — locked while WHO reviews it.' + (sess.role === 'admin' ? ' As admin you can still correct it.' : ' Ask the WHO reviewer to return it if you need to change something.') + '</span></div>');
+  if (st === 'validated') b.push('<div class="bnr gn">' + TM1.icon('check') + '<span><b>Validated by WHO</b> on ' + esc(TM1.fmtDT(s.validatedAt)) + ' — shown on the Regional Dashboard and locked. Only the admin can unlock it (Review &amp; Validation tab).</span></div>');
+  if (!st && editable) b.push('<div class="bnr">' + TM1.icon('plus') + '<span>No submission yet for ' + esc(CNAME[s.iso3]) + ' · ' + s.year + '. ' + (isRev ? 'You are creating a WHO pre-fill from public sources.' : 'Fill in the form and click Save draft.') + '</span></div>');
+  if (!editable && !['submitted', 'validated'].includes(st)) b.push('<div class="bnr">' + TM1.icon('lock') + '<span>Read-only for your role.' + (isRev && st ? ' WHO reviewers can edit pre-fills only; once the country has saved it, only the country (or the admin) can edit.' : '') + '</span></div>');
+  $('bnr').innerHTML = b.join('');
+}
+async function hist() {
+  const t = $('hist');
+  if (!CUR.id) { t.innerHTML = '<tr><td class="nodata">No history yet.</td></tr>'; return; }
+  try {
+    const a = await TM1.api.audit(CUR.id);
+    t.innerHTML = '<tr><th>When</th><th>Who</th><th>Action</th><th>Detail</th></tr>' + (a.length ? a.map(x => '<tr><td style="white-space:nowrap">' + TM1.fmtDT(x.at) + '</td><td>' + esc(x.by) + '</td><td><b>' + esc(x.action) + '</b></td><td>' + esc(x.detail) + '</td></tr>').join('') : '<tr><td colspan="4" class="nodata">No changes recorded in this browser yet.</td></tr>');
+  } catch (e) { t.innerHTML = '<tr><td class="nodata">' + esc(e.message) + '</td></tr>'; }
+}
+
+/* ── Actions ── */
+function say(text, bad) { const m = $('msg'); m.className = 'msg ' + (bad ? 'bad' : 'ok'); m.innerHTML = text; }
+async function save(silent) {
+  const btn = $('bSave'); btn.disabled = true;
+  try {
+    const saved = await TM1.api.save(CUR.iso3, CUR.year, readForm());
+    WS = WS.filter(s => s.code !== saved.code).concat([saved]); CUR = saved; dirty = false;
+    if (!silent) { say('✓ Saved (' + esc(saved.code) + ', status: ' + STATUS[saved.status] + ').'); TM1.toast('✓ Saved'); }
+    applyState(); hist(); return saved;
+  } catch (e) { say('Could not save: ' + esc(e.message), true); return null; }
+  finally { btn.disabled = false; }
+}
+async function submitWHO() {
+  document.querySelectorAll('.miss').forEach(e => e.classList.remove('miss'));
+  const miss = TM1.missingForSubmit(readForm());
+  if (miss.length) {
+    miss.forEach(m => { const el = $('g_' + m.f) || $(m.f) || ($('iv_' + m.f.slice(3) + '_w')); if (el) el.classList.add('miss'); });
+    say('Not submitted — ' + miss.length + ' required field(s) missing:<ul class="misslist">' + miss.slice(0, 8).map(m => '<li>' + esc(m.t) + '</li>').join('') + (miss.length > 8 ? '<li>… and ' + (miss.length - 8) + ' more (highlighted in red)</li>' : '') + '</ul>', true);
+    const first = document.querySelector('.miss'); if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+  if (!confirm('Submit ' + CUR.code + ' to WHO?\n\nThe submission will be locked while WHO reviews it. Make sure the figures have been cleared inside your Ministry.')) return;
+  const b = $('bSubmit'); b.disabled = true;
+  try {
+    const saved = await save(true); if (!saved) return;
+    const s = await TM1.api.setStatus(saved.id, 'submit');
+    WS = WS.filter(x => x.code !== s.code).concat([s]); CUR = s; dirty = false;
+    say('✓ Submitted to WHO (' + esc(s.code) + '). You will see WHO comments here if it is returned.'); TM1.toast('✓ Submitted to WHO');
+    applyState(); hist();
+  } catch (e) { say('Could not submit: ' + esc(e.message), true); }
+  finally { b.disabled = false; }
+}
+
+/* ── Init ── */
+buildForm();
+document.querySelectorAll('[data-ic]').forEach(e => { e.innerHTML = TM1.icon(e.dataset.ic); });
+$('demoRib').hidden = TM1.LIVE; TM1.sampleRibbon($('demoRib'));
+const cl = allowedCountries();
+$('noAccess').hidden = cl.length > 0;
+$('sMS').innerHTML = cl.map(([k, n]) => '<option value="' + k + '">' + esc(n) + '</option>').join('');
+$('sMS').disabled = sess.role === 'country_focal_point';
+$('sYear').innerHTML = YEARS.map(y => '<option>' + y + '</option>').join('');
+$('sYear').value = new Date().getFullYear();
+if (!cl.length) { $('f').hidden = true; document.querySelector('.actbar').hidden = true; }
+else { window.addEventListener('tm1-data', () => { if (!dirty) load(true); else TM1.entered(); }); load(); }   // never overwrite unsaved edits
+</script>
+</body>
+</html>

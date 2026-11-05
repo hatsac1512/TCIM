@@ -1,0 +1,99 @@
+/* ═══ Liquid Glass theme for the shell (index_glass.html only) — see theme_glass.css.
+   Floating frosted-glass sidebar and top bar over the silver droplet backdrop. ═══ */
+:root{
+  --bg:#D9DCE1; --sf:#FFFFFF; --sf2:rgba(255,255,255,.42); --bd:rgba(60,60,67,.13); --bd2:rgba(60,60,67,.22); --tx:#1D1D1F; --hl:#000000; --mu:#55585E;
+  --pri:#0071E3; --pri2:#0060C2; --pri-soft:rgba(0,113,227,.12); --or:#B35F00; --or-soft:rgba(255,159,10,.18); --gn:#1F8F45; --gn-soft:rgba(52,199,89,.18); --rd:#D93025; --fld:rgba(255,255,255,.75);
+  --sh:0 10px 30px rgba(30,35,45,.10),0 1px 2px rgba(30,35,45,.06); --sh-lg:0 30px 70px rgba(30,35,45,.24);
+  --g-fill:linear-gradient(180deg,rgba(255,255,255,.58),rgba(255,255,255,.30));
+  --g-rim:rgba(255,255,255,.78);
+  --g-in:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(255,255,255,.35);
+  --g-blur:blur(24px) saturate(170%);
+  --lens:linear-gradient(180deg,rgba(255,255,255,.96),rgba(255,255,255,.62));
+  --lens-sh:inset 0 1px 0 #fff,inset 0 -1px 0 rgba(0,0,0,.05),0 4px 14px rgba(30,35,45,.16);
+}
+:root[data-theme="dark"]{
+  --bg:#071C3D; --sf:#0E2A55; --sf2:rgba(255,255,255,.07); --bd:rgba(255,255,255,.10); --bd2:rgba(255,255,255,.18); --tx:#E4ECF8; --hl:#FFFFFF; --mu:#A9B8D0;
+  --pri:#4C9AFF; --pri2:#3B88F0; --pri-soft:rgba(76,154,255,.18); --or:#FFB340; --or-soft:rgba(255,159,10,.16); --gn:#4ADE80; --gn-soft:rgba(52,199,89,.18); --rd:#FF6B61; --fld:rgba(255,255,255,.08);
+  --sh:0 10px 30px rgba(0,0,0,.30); --sh-lg:0 30px 70px rgba(0,0,0,.55);
+  --g-fill:linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,.05));
+  --g-rim:rgba(255,255,255,.22);
+  --g-in:inset 0 1px 0 rgba(255,255,255,.30),inset 0 -1px 0 rgba(255,255,255,.06);
+  --lens:linear-gradient(180deg,rgba(255,255,255,.26),rgba(255,255,255,.11));
+  --lens-sh:inset 0 1px 0 rgba(255,255,255,.4),0 4px 14px rgba(0,0,0,.35);
+}
+body{background:var(--bg)}
+
+/* ── Floating glass sidebar and top bar ── */
+.sb,.tb{background:var(--g-fill)!important;border:1px solid var(--g-rim)!important;box-shadow:var(--g-in),var(--sh);
+  -webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur)}
+.sb{margin:12px 0 12px 12px;border-radius:28px;overflow:hidden}
+.sb-brand{border-bottom:1px solid var(--bd)}
+.col{padding:12px 12px 0 12px}
+.tb{flex:0 0 62px;border-radius:999px;padding:0 10px 0 22px}
+.logo{border-radius:12px;background:linear-gradient(180deg,#2C2C30,#0A0A0C);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 4px 10px rgba(0,0,0,.18)}
+:root[data-theme="dark"] .logo{background:linear-gradient(180deg,#FFFFFF,#DCE3EE);color:#000}
+
+/* navigation: the selected item is a glass pill with white text, as the dashboard tabs —
+   graphite grey in light mode (same as the KPI cards), WHO blue in dark mode */
+.nv{border-radius:999px;color:var(--tx)}
+.nv:hover{background:rgba(255,255,255,.35);color:var(--hl)}
+:root[data-theme="dark"] .nv:hover{background:rgba(255,255,255,.07)}
+.nv.on,.nv.on:hover{background:linear-gradient(180deg,#62676F,#3E4248);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 1px 2px rgba(0,0,0,.18),0 6px 16px rgba(30,35,45,.30)}
+:root[data-theme="dark"] .nv.on,:root[data-theme="dark"] .nv.on:hover{background:linear-gradient(180deg,#0B74BE,#0A5A9E);box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.5)}
+.nv.on::before{display:none}
+.nv.on .nb{background:#fff;color:#3E4248}   /* review badge stays readable on the selected pill */
+:root[data-theme="dark"] .nv.on .nb{color:#0A5A9E}
+
+/* WHO card in glass at the top left (in place of the small TM1 brand row), a little larger;
+   logo keeps its WHO blue (white in dark mode) */
+.sb-brand{display:none}
+.sb-card{order:-1;margin:12px 12px 4px;padding:18px;background:var(--g-fill);color:var(--hl);border:1px solid var(--g-rim);box-shadow:var(--g-in)}
+.sb-card::after{background:rgba(255,255,255,.35)}
+.sb-card img{filter:none;height:88px;margin-bottom:14px}
+:root[data-theme="dark"] .sb-card img{filter:brightness(0) invert(1)}
+.sb-card b{font-size:1.06rem;line-height:1.3;margin-bottom:5px}
+
+/* larger Workspace: wider sidebar, taller navigation items, bigger text and icons */
+.sb{flex-basis:288px}
+.sb-nav{padding:16px 14px;gap:6px}
+.sb-sec{font-size:.76rem;letter-spacing:.9px;padding:8px 14px}
+.nv{height:50px;padding:0 16px;gap:13px;font-size:1rem}
+.nv .ic{width:21px;height:21px}
+.nb{min-width:24px;height:22px;font-size:.78rem}
+.sb-card span{opacity:1;color:var(--mu);font-size:.8rem}
+.sb-card .md{background:var(--lens);color:var(--hl);box-shadow:var(--lens-sh)}
+
+/* top-bar controls as glass pills */
+.icb,.usr,.b-out{background:var(--lens);border:1px solid var(--g-rim);box-shadow:var(--lens-sh);color:var(--hl)}
+.b{border-radius:999px}
+.b-pri{background:linear-gradient(180deg,#2C2C30,#0A0A0C);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 6px 16px rgba(0,0,0,.18)}
+.b-pri:hover{background:linear-gradient(180deg,#3A3A3F,#141417)}
+:root[data-theme="dark"] .b-pri{background:linear-gradient(180deg,#FFFFFF,#DCE3EE);color:#000}
+.av{background:linear-gradient(180deg,#2C2C30,#0A0A0C);color:#fff}
+:root[data-theme="dark"] .av{background:#fff;color:#000}
+.tag{background:var(--lens);box-shadow:var(--lens-sh)}
+
+/* ── Welcome introduction: the three parts on glass ── */
+.part{background:var(--g-fill);border:1px solid var(--g-rim);box-shadow:var(--g-in),var(--sh);-webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur)}
+.part{border-radius:22px}
+.part .n{border-radius:50%;background:var(--lens);color:var(--hl);box-shadow:var(--lens-sh)}
+
+/* ── Welcome, login and MFA cards ── */
+.wcard,.card{background:var(--g-fill);border:1px solid var(--g-rim);border-radius:30px;box-shadow:var(--g-in),var(--sh-lg);
+  -webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur)}
+.wcard .demo,.demo-note{background:linear-gradient(180deg,rgba(255,238,210,.75),rgba(255,238,210,.45));border:1px solid var(--g-rim)}
+:root[data-theme="dark"] .wcard .demo,:root[data-theme="dark"] .demo-note{background:rgba(255,159,10,.12)}
+.card input,.card select{border-radius:12px}
+.mask{background:rgba(200,205,212,.38);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+:root[data-theme="dark"] .mask{background:rgba(2,10,25,.5)}
+
+@media(max-width:900px){
+  .sb{margin:8px 8px 0;border-radius:22px;overflow-x:auto}
+  .sb-brand{display:flex}                 /* phones: the WHO card is hidden, keep the compact brand */
+  .sb{flex-basis:auto}.sb-nav{padding:6px;gap:4px}.nv{height:38px;padding:0 12px;gap:11px;font-size:.8rem}.nv .ic{width:18px;height:18px}   /* compact row on phones */
+  .col{padding:8px}
+  .tb{border-radius:22px;padding:0 8px;justify-content:flex-end}
+  .tb-r{gap:6px}
+  .usr b{max-width:96px}
+  #btnLogout{font-size:0;gap:0;padding:0 12px}   /* icon only on phones */
+}
